@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package engine;
+
+option go_package = "github.com/filecoin-backup/shared/proto";
+
+// Engine service definition
+service EngineService {
+  // Process files for backup
+  rpc ProcessFiles(ProcessFilesRequest) returns (ProcessFilesResponse);
+  
+  // Compress data
+  rpc CompressData(CompressDataRequest) returns (CompressDataResponse);
+  
+  // Encrypt data
+  rpc EncryptData(EncryptDataRequest) returns (EncryptDataResponse);
+  
+  // Decrypt data
+  rpc DecryptData(DecryptDataRequest) returns (DecryptDataResponse);
+  
+  // Get engine status
+  rpc GetEngineStatus(GetEngineStatusRequest) returns (GetEngineStatusResponse);
+  
+  // Stream file processing progress
+  rpc StreamProcessingProgress(StreamProcessingProgressRequest) returns (stream ProcessingProgressUpdate);
+}
+
+// Request to process files
+message ProcessFilesRequest {
+  repeated string file_paths = 1;
+  ProcessingOptions options = 2;
+}
+
+// Response for file processing
+message ProcessFilesResponse {
+  string job_id = 1;
+  repeated FileInfo processed_files = 2;
+  string status = 3;
+}
+
+// Request to compress data
+message CompressDataRequest {
+  bytes data = 1;
+  int32 compression_level = 2;
+}
+
+// Response for data compression
+message CompressDataResponse {
+  bytes compressed_data = 1;
+  int64 original_size = 2;
+  int64 compressed_size = 3;
+  float compression_ratio = 4;
+}
+
+// Request to encrypt data
+message EncryptDataRequest {
+  bytes data = 1;
+  string encryption_key = 2;
+  string algorithm = 3;
+}
+
+// Response for data encryption
+message EncryptDataResponse {
+  bytes encrypted_data = 1;
+  string initialization_vector = 2;
+  bool success = 3;
+}
+
+// Request to decrypt data
+message DecryptDataRequest {
+  bytes encrypted_data = 1;
+  string encryption_key = 2;
+  string initialization_vector = 3;
+  string algorithm = 4;
+}
+
+// Response for data decryption
+message DecryptDataResponse {
+  bytes decrypted_data = 1;
+  bool success = 2;
+}
+
+// Request to get engine status
+message GetEngineStatusRequest {}
+
+// Response with engine status
+message GetEngineStatusResponse {
+  string status = 1;
+  int32 active_jobs = 2;
+  int32 queued_jobs = 3;
+  EngineMetrics metrics = 4;
+}
+
+// Request to stream processing progress
+message StreamProcessingProgressRequest {
+  string job_id = 1;
+}
+
+// Processing progress update
+message ProcessingProgressUpdate {
+  string job_id = 1;
+  int32 progress = 2;
+  string current_file = 3;
+  int64 bytes_processed = 4;
+  int64 total_bytes = 5;
+  string status = 6;
+}
+
+// Processing options
+message ProcessingOptions {
+  bool enable_compression = 1;
+  int32 compression_level = 2;
+  bool enable_encryption = 3;
+  string encryption_key = 4;
+  bool calculate_checksums = 5;
+  bool preserve_permissions = 6;
+}
+
+// File information
+message FileInfo {
+  string path = 1;
+  int64 size = 2;
+  string checksum = 3;
+  string modified_time = 4;
+  string permissions = 5;
+  string file_type = 6;
+}
+
+// Engine metrics
+message EngineMetrics {
+  int64 total_files_processed = 1;
+  int64 total_bytes_processed = 2;
+  float average_processing_speed = 3;
+  int32 cpu_usage = 4;
+  int32 memory_usage = 5;
+  int32 disk_usage = 6;
+}

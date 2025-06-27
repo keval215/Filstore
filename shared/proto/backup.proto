@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package backup;
+
+option go_package = "github.com/filecoin-backup/shared/proto";
+
+// Backup service definition
+service BackupService {
+  // Create a new backup job
+  rpc CreateBackup(CreateBackupRequest) returns (CreateBackupResponse);
+  
+  // Get backup status
+  rpc GetBackupStatus(GetBackupStatusRequest) returns (GetBackupStatusResponse);
+  
+  // List all backups
+  rpc ListBackups(ListBackupsRequest) returns (ListBackupsResponse);
+  
+  // Cancel a backup job
+  rpc CancelBackup(CancelBackupRequest) returns (CancelBackupResponse);
+  
+  // Stream backup progress
+  rpc StreamBackupProgress(StreamBackupProgressRequest) returns (stream BackupProgressUpdate);
+}
+
+// Request to create a new backup
+message CreateBackupRequest {
+  string name = 1;
+  repeated string files = 2;
+  string destination = 3;
+  BackupOptions options = 4;
+}
+
+// Response for backup creation
+message CreateBackupResponse {
+  string backup_id = 1;
+  string status = 2;
+  string message = 3;
+}
+
+// Request to get backup status
+message GetBackupStatusRequest {
+  string backup_id = 1;
+}
+
+// Response with backup status
+message GetBackupStatusResponse {
+  string backup_id = 1;
+  string status = 2;
+  int32 progress = 3;
+  string created_at = 4;
+  string updated_at = 5;
+  string error_message = 6;
+  BackupMetadata metadata = 7;
+}
+
+// Request to list backups
+message ListBackupsRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string status_filter = 3;
+}
+
+// Response with list of backups
+message ListBackupsResponse {
+  repeated BackupInfo backups = 1;
+  int32 total = 2;
+}
+
+// Request to cancel a backup
+message CancelBackupRequest {
+  string backup_id = 1;
+}
+
+// Response for backup cancellation
+message CancelBackupResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Request to stream backup progress
+message StreamBackupProgressRequest {
+  string backup_id = 1;
+}
+
+// Backup progress update
+message BackupProgressUpdate {
+  string backup_id = 1;
+  int32 progress = 2;
+  string status = 3;
+  string current_file = 4;
+  int64 bytes_processed = 5;
+  int64 total_bytes = 6;
+}
+
+// Backup options
+message BackupOptions {
+  bool compression = 1;
+  bool encryption = 2;
+  string encryption_key = 3;
+  int32 compression_level = 4;
+  string schedule = 5;
+  int32 retention_days = 6;
+}
+
+// Backup metadata
+message BackupMetadata {
+  int64 total_size = 1;
+  int32 file_count = 2;
+  string checksum = 3;
+  string storage_location = 4;
+  string filecoin_cid = 5;
+  string ipfs_hash = 6;
+  repeated string storage_providers = 7;
+}
+
+// Basic backup information
+message BackupInfo {
+  string backup_id = 1;
+  string name = 2;
+  string status = 3;
+  int32 progress = 4;
+  string created_at = 5;
+  string updated_at = 6;
+  int64 size = 7;
+  int32 file_count = 8;
+}

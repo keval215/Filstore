@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  gateway:
+    build:
+      context: .
+      target: gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - ENGINE_URL=http://engine:9090
+      - BLOCKCHAIN_URL=http://blockchain:3001
+      - REDIS_URL=redis://redis:6379
+      - POSTGRES_URL=postgres://user:password@postgres:5432/filecoin_backup
+    depends_on:
+      - redis
+      - postgres
+      - engine
+      - blockchain
+    networks:
+      - filecoin-network
+
+  engine:
+    build:
+      context: .
+      target: engine
+    ports:
+      - "9090:9090"
+    environment:
+      - PORT=9090
+      - REDIS_URL=redis://redis:6379
+      - POSTGRES_URL=postgres://user:password@postgres:5432/filecoin_backup
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - ./data/uploads:/app/uploads
+      - ./data/logs:/app/logs
+    networks:
+      - filecoin-network
+
+  blockchain:
+    build:
+      context: .
+      target: blockchain
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - FILECOIN_NODE_URL=${FILECOIN_NODE_URL}
+      - FILECOIN_NETWORK=${FILECOIN_NETWORK:-calibration}
+      - WALLET_PRIVATE_KEY=${WALLET_PRIVATE_KEY}
+      - WALLET_ENCRYPTION_KEY=${WALLET_ENCRYPTION_KEY}
+      - IPFS_URL=${IPFS_URL}
+    volumes:
+      - ./data/wallets:/app/data/wallets
+      - ./data/config:/app/data/config
+    networks:
+      - filecoin-network
+
+  frontend:
+    build:
+      context: .
+      target: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - GATEWAY_URL=http://gateway:8080
+    depends_on:
+      - gateway
+    networks:
+      - filecoin-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - filecoin-network
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=filecoin_backup
+      - POSTGRES_USER=filecoin_user
+      - POSTGRES_PASSWORD=filecoin_pass
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    networks:
+      - filecoin-network
+
+networks:
+  filecoin-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  postgres-data:
