@@ -2,13 +2,38 @@
 class BackupDashboard {
     constructor() {
         this.apiBaseUrl = '/api/v1/web';
+        this.authToken = localStorage.getItem('auth_token');
         this.init();
     }
 
     async init() {
+        // Check authentication first
+        if (!this.checkAuthentication()) {
+            this.redirectToLogin();
+            return;
+        }
+
+        // Load user info
+        this.loadUserInfo();
+
         await this.loadDashboardData();
         this.setupEventListeners();
         this.startPeriodicUpdates();
+    }
+
+    checkAuthentication() {
+        return !!this.authToken;
+    }
+
+    redirectToLogin() {
+        window.location.href = '/login.html';
+    }
+
+    loadUserInfo() {
+        const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
+        if (userInfo.username) {
+            document.getElementById('username').textContent = userInfo.username;
+        }
     }
 
     async loadDashboardData() {
@@ -23,12 +48,37 @@ class BackupDashboard {
             this.updateSystemHealth(dashboardData.systemHealth);
         } catch (error) {
             console.error('Failed to load dashboard data:', error);
+            
+            // If unauthorized, redirect to login
+            if (error.message.includes('401') || error.message.includes('unauthorized')) {
+                this.redirectToLogin();
+                return;
+            }
+            
             this.showNotification('Failed to load dashboard data', 'error');
         }
     }
 
     async fetchData(endpoint) {
-        const response = await fetch(`${this.apiBaseUrl}${endpoint}`);
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+
+        // Add auth token if available
+        if (this.authToken) {
+            headers['Authorization'] = `Bearer ${this.authToken}`;
+        }
+
+        const response = await fetch(`${this.apiBaseUrl}${endpoint}`, {
+            headers: headers
+        });
+
+        if (response.status === 401) {
+            // Token expired or invalid
+            this.logout();
+            throw new Error('Unauthorized - redirecting to login');
+        }
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -289,31 +339,34 @@ class BackupDashboard {
         }, 10000);
     }
 
-    async updateSystemStatus() {
-        try {
-            const response = await fetch('/api/v1/test');
-            const data = await response.json();
-            
-            const statusElement = document.getElementById('system-status');
-            if (data.status === 'connected') {
-                statusElement.textContent = 'Online';
-                statusElement.className = 'text-green-300';
-            } else {
-                statusElement.textContent = 'Offline';
-                statusElement.className = 'text-red-300';
-            }
-        } catch (error) {
-            const statusElement = document.getElementById('system-status');
-            statusElement.textContent = 'Offline';
-            statusElement.className = 'text-red-300';
-        }
+    logout() {
+        // Clear local storage
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_info');
+        
+        // Redirect to login
+        window.location.href = '/login.html';
+    }
+}
+
+// Global logout function for the logout button
+function logout() {
+    if (window.dashboard) {
+        window.dashboard.logout();
+    } else {
+        // Fallback if dashboard instance not available
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_info');
+        window.location.href = '/login.html';
     }
 }
 
 // Initialize the dashboard when the page loads
-let dashboard;
+const dashboard = new BackupDashboard();
+window.dashboard = dashboard; // Make it globally available
+
 document.addEventListener('DOMContentLoaded', () => {
-    dashboard = new BackupDashboard();
+    // ...existing initialization code...
 });
 
 // Handle keyboard shortcuts

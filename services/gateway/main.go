@@ -9,15 +9,20 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"gateway/config"
 	"gateway/handlers"
 	"gateway/middleware"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	// Load configuration
 	cfg := config.Load()
+
+	// Log startup with Web3 authentication
+	log.Printf("🚀 Starting Filecoin Backup Gateway on port %s", cfg.Port)
+	log.Println("🔐 Authentication: Web3 Wallet Only (MetaMask, Coinbase Wallet, etc.)")
 
 	// Initialize Gin router
 	r := gin.Default()
@@ -25,9 +30,9 @@ func main() {
 	// Setup middleware
 	r.Use(middleware.CORS())
 	r.Use(middleware.RateLimit())
-	r.Use(middleware.Auth())
+	r.Use(middleware.WalletAuth()) // Only Web3 wallet authentication
 
-	// Setup routes
+	// API routes - all protected by wallet authentication
 	api := r.Group("/api/v1")
 	{
 		api.GET("/health", handlers.Health)
