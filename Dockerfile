@@ -2,7 +2,7 @@
 # Using security-hardened base images
 
 # Stage 1: Build Go services (Gateway and Engine)
-FROM golang:1.21-alpine3.19 AS go-builder
+FROM golang:1.21-alpine3.20 AS go-builder
 
 # Install security updates
 RUN apk update && apk upgrade && apk add --no-cache git ca-certificates tzdata
@@ -27,7 +27,7 @@ RUN cd services/gateway && CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -a
 RUN cd services/engine && CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -a -installsuffix cgo -o engine main.go
 
 # Stage 2: Node.js services build stage
-FROM node:21-alpine3.19 AS node-builder
+FROM node:21-alpine3.20 AS node-builder
 
 # Install security updates and build dependencies
 RUN apk update && apk upgrade && apk add --no-cache \
@@ -85,7 +85,7 @@ EXPOSE 9090
 ENTRYPOINT ["./engine"]
 
 # Stage 5: Blockchain service - Using slim base
-FROM node:21-alpine3.19 AS blockchain
+FROM node:21-alpine3.20 AS blockchain
 
 # Install only essential packages and remove cache
 RUN apk update && apk upgrade && apk add --no-cache dumb-init \
@@ -97,16 +97,13 @@ WORKDIR /app
 COPY --from=node-builder /app/services/blockchain/ .
 RUN chown -R nodejs:nodejs /app
 
-# Create wallet initialization script with proper permissions  
-RUN chmod +x src/auto-wallet-init.js src/check-wallet.js
-
 USER nodejs
 EXPOSE 3001
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", "node src/auto-wallet-init.js && node index.js"]
+CMD ["node", "index.js"]
 
 # Stage 6: Frontend service - Using slim base
-FROM node:21-alpine3.19 AS frontend
+FROM node:21-alpine3.20 AS frontend
 
 # Install only essential packages and remove cache
 RUN apk update && apk upgrade && apk add --no-cache dumb-init \

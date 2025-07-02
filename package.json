@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@glif/filecoin-address": "^4.0.0"
+  }
+}

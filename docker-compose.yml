@@ -44,16 +44,22 @@ services:
       target: blockchain
     ports:
       - "3001:3001"
+    env_file:
+      - ./shared/config/dev.env
     environment:
       - PORT=3001
       - FILECOIN_NODE_URL=${FILECOIN_NODE_URL}
       - FILECOIN_NETWORK=${FILECOIN_NETWORK:-calibration}
       - WALLET_PRIVATE_KEY=${WALLET_PRIVATE_KEY}
-      - WALLET_ENCRYPTION_KEY=${WALLET_ENCRYPTION_KEY}
       - IPFS_URL=${IPFS_URL}
     volumes:
       - ./data/wallets:/app/data/wallets
       - ./data/config:/app/data/config
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - filecoin-network
 

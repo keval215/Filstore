@@ -3,11 +3,13 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 
-const walletRoutes = require('./src/wallet');
-const walletManagerRoutes = require('./src/wallet-manager');
-const filecoinRoutes = require('./src/filecoin');
-const storageRoutes = require('./src/storage');
-const optimizerRoutes = require('./src/ai-optimizer');
+// Import the new clean routers
+const walletRoutes = require('./src/wallet/wallet.router');
+const filecoinRoutes = require('./src/filecoin/filecoin.router');
+const storageRoutes = require('./src/storage/storage.router');
+
+// Initialize wallet service on startup
+const WalletService = require('./src/wallet/wallet.service');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -19,22 +21,45 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Initialize wallets on startup (async initialization)
+async function initializeWallets() {
+    try {
+        console.log('🚀 Initializing blockchain service wallets...');
+        const walletService = new WalletService();
+        
+        // Initialize both wallets
+        const testnetWallet = await walletService.getOrCreateWallet('calibration');
+        const mainnetWallet = await walletService.getOrCreateWallet('mainnet');
+        
+        console.log('✅ Wallets initialized:');
+        console.log(`   🧪 Testnet:  ${testnetWallet.address}`);
+        console.log(`   🌐 Mainnet:  ${mainnetWallet.address}`);
+        
+        return { testnetWallet, mainnetWallet };
+    } catch (error) {
+        console.error('❌ Wallet initialization failed:', error.message);
+        // Don't exit - service can still run for other operations
+    }
+}
+
+// Initialize wallets (non-blocking)
+initializeWallets();
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
     service: 'blockchain',
-    version: '1.0.0',
+    version: '2.0.0',
+    network: process.env.FILECOIN_NETWORK || 'calibration',
     timestamp: new Date().toISOString()
   });
 });
 
-// API routes
+// API routes - clean and consolidated
 app.use('/api/v1/wallet', walletRoutes);
-app.use('/api/v1/wallet-manager', walletManagerRoutes);
 app.use('/api/v1/filecoin', filecoinRoutes);
 app.use('/api/v1/storage', storageRoutes);
-app.use('/api/v1/optimize', optimizerRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

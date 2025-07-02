@@ -39,6 +39,8 @@ func main() {
 		api.GET("/status", handlers.Status)
 		api.POST("/backup", handlers.InitiateBackup)
 		api.GET("/backup/:id", handlers.GetBackupStatus)
+		api.POST("/faucet", middleware.GetTestnetTokens())
+		api.GET("/balance/:address", middleware.GetWalletBalance())
 	}
 
 	// Create HTTP server

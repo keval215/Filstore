@@ -1,0 +1,59 @@
+package main
+
+import (
+	"github.com/gin-gonic/gin"
+	"your_project/middleware" // Update with your actual import path
+)
+
+func main() {
+	router := gin.Default()
+
+	// Setup routes
+	setupRoutes(router)
+
+	// Run the server
+	router.Run(":8080")
+}
+
+func setupRoutes(router *gin.Engine) {
+	// Health check endpoint
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "ok",
+		})
+	})
+
+	// Wallet authentication middleware
+	router.Use(middleware.WalletAuth())
+
+	// Protected routes
+	router.POST("/api/v1/backup", backupHandler)
+	router.DELETE("/api/v1/backup", backupHandler)
+	router.PUT("/api/v1/backup", backupHandler)
+	router.POST("/api/v1/upload", uploadHandler)
+	router.POST("/api/v1/restore", restoreHandler)
+
+	// Faucet endpoints
+	router.POST("/api/v1/faucet", middleware.GetTestnetTokens())
+	router.GET("/api/v1/balance/:address", middleware.GetWalletBalance())
+	router.GET("/api/v1/balance", middleware.GetWalletBalance())
+}
+
+// Dummy handlers for protected routes
+func backupHandler(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"message": "Backup operation successful",
+	})
+}
+
+func uploadHandler(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"message": "Upload operation successful",
+	})
+}
+
+func restoreHandler(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"message": "Restore operation successful",
+	})
+}
