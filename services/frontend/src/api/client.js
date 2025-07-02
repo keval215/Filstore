@@ -4,13 +4,62 @@ class APIClient {
     constructor() {
         this.gatewayUrl = process.env.GATEWAY_URL || 'http://localhost:8080';
         this.timeout = 30000; // 30 seconds
+        this.walletAddress = null;
     }
 
-    // Gateway API calls
+    // Set wallet address for authentication
+    setWalletAddress(address) {
+        this.walletAddress = address;
+    }
+
+    // Sign a message with Web3 wallet
+    async signMessage(message) {
+        if (typeof window.ethereum === 'undefined') {
+            throw new Error('Web3 wallet not available');
+        }
+
+        if (!this.walletAddress) {
+            throw new Error('Wallet not connected');
+        }
+
+        try {
+            const signature = await window.ethereum.request({
+                method: 'personal_sign',
+                params: [message, this.walletAddress]
+            });
+            return signature;
+        } catch (error) {
+            throw new Error('Failed to sign message with wallet');
+        }
+    }
+
+    // Create authenticated headers for requests
+    async getAuthHeaders(requireSignature = false, customMessage = null) {
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+
+        if (this.walletAddress) {
+            headers['X-Wallet-Address'] = this.walletAddress;
+        }
+
+        if (requireSignature) {
+            const message = customMessage || `Filecoin Backup Operation at ${new Date().toISOString()}`;
+            const signature = await this.signMessage(message);
+            headers['X-Wallet-Signature'] = signature;
+            headers['X-Signed-Message'] = message;
+        }
+
+        return headers;
+    }
+
+    // Gateway API calls with Web3 authentication
     async getGatewayStatus() {
         try {
+            const headers = await this.getAuthHeaders(false);
             const response = await axios.get(`${this.gatewayUrl}/api/v1/status`, {
-                timeout: this.timeout
+                timeout: this.timeout,
+                headers
             });
             return response.data;
         } catch (error) {
@@ -20,30 +69,27 @@ class APIClient {
 
     async createBackup(backupData) {
         try {
+            const headers = await this.getAuthHeaders(true, `Create backup: ${JSON.stringify(backupData)}`);
             const response = await axios.post(`${this.gatewayUrl}/api/v1/backup`, backupData, {
                 timeout: this.timeout,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.getAuthToken()}`
-                }
+                headers
             });
             return response.data;
         } catch (error) {
-            throw new Error(`Backup creation failed: ${error.message}`);
+            throw new Error(`Backup creation failed: ${error.response?.data?.error || error.message}`);
         }
     }
 
     async getBackupStatus(backupId) {
         try {
+            const headers = await this.getAuthHeaders(false);
             const response = await axios.get(`${this.gatewayUrl}/api/v1/backup/${backupId}`, {
                 timeout: this.timeout,
-                headers: {
-                    'Authorization': `Bearer ${this.getAuthToken()}`
-                }
+                headers
             });
             return response.data;
         } catch (error) {
-            throw new Error(`Failed to get backup status: ${error.message}`);
+            throw new Error(`Failed to get backup status: ${error.response?.data?.error || error.message}`);
         }
     }
 
@@ -215,14 +261,19 @@ class APIClient {
     }
 
     // Utility methods
-    getAuthToken() {
-        // TODO: Implement proper token management
-        // For now, return a placeholder token
-        return process.env.API_TOKEN || 'placeholder_token';
+    isWalletConnected() {
+        return !!this.walletAddress;
     }
 
-    setAuthToken(token) {
-        process.env.API_TOKEN = token;
+    getWalletAddress() {
+        return this.walletAddress;
+    }
+
+    disconnect() {
+        this.walletAddress = null;
+        if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem('wallet_address');
+        }
     }
 
     // Batch operations

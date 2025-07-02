@@ -1,339 +1,303 @@
-# Filecoin Hybrid Backup System
+# Filstore - Decentralized File Storage & Backup System
 
-A user-friendly backup solution leveraging Filecoin's decentralized storage network with AI-powered optimization.
+A comprehensive decentralized storage solution built on Filecoin with Web3 wallet integration, automated backups, and intelligent storage optimization.
+
+## 🌟 Features
+
+- **Web3 Wallet Integration**: MetaMask, Coinbase Wallet, and other Web3 wallets
+- **Filecoin Storage**: Secure, decentralized file storage on Filecoin network
+- **IPFS Integration**: Distributed file sharing with Pinata pinning service
+- **Automated Backups**: Scheduled backups with compression and encryption
+- **Storage Optimization**: AI-powered recommendations for cost-effective storage
+- **Multi-Network Support**: Calibration testnet and Mainnet configurations
+- **Docker Containerization**: Easy deployment with Docker Compose
+- **Modern Web Interface**: React-based dashboard with real-time monitoring
 
 ## 🚀 Quick Start
 
-Choose your preferred startup method:
+### Prerequisites
 
-### 🎯 Automated Setup (Recommended for Beginners)
-**Zero configuration required - perfect for web2 users!**
+- Docker and Docker Compose
+- Node.js 18+ (for development)
+- Git
 
-```powershell
-# Windows one-click setup
+### 1. Clone the Repository
+
+```bash
+git clone <your-repo-url>
+cd Filstore
+```
+
+### 2. Quick Setup (Windows)
+
+Run the automated setup script:
+
+```batch
 quick-setup.bat
 ```
 
-**What this does:**
-- ✅ Generates all secure secrets automatically
-- ✅ Creates and funds Filecoin testnet wallet
-- ✅ Configures IPFS with demo credentials
-- ✅ Starts all services with Docker
-- ✅ Opens web dashboard in browser
+This will:
+- Set up environment variables
+- Initialize wallet configurations
+- Build and start all Docker containers
+- Initialize the database
+- Start all services
 
-### 🔧 Manual Setup (Advanced Users)
-**Full control over configuration**
+### 3. Manual Setup
 
-```powershell
-# 1. Copy and edit environment file
-copy .env.example .env
-notepad .env
+If you prefer manual setup:
 
-# 2. Start services
+```bash
+# Copy environment configuration
+cp shared/config/dev.env .env
+
+# Build and start services
 docker-compose up -d
 
-# 3. Access dashboard
-start http://localhost:3000
+# Initialize wallets (if needed)
+node scripts/docker-init-wallets.js
 ```
 
-**Manual configuration required:**
-- Generate JWT secrets and encryption keys
-- Setup IPFS credentials or use your own node
-- Configure Filecoin network (testnet/mainnet)
-- Create or import wallet
+### 4. Access the Application
 
-### 🛠️ Development Mode
-**For developers modifying code**
-
-```powershell
-# Start infrastructure only
-docker-compose up -d postgres redis
-
-# Start services individually (separate terminals)
-cd services/gateway && go run main.go
-cd services/engine && go run main.go
-cd services/blockchain && npm install && npm start
-cd services/frontend && npm install && npm start
-```
-
-## 📊 Service URLs
-
-Once started, access these services:
 - **Web Dashboard**: http://localhost:3000
 - **API Gateway**: http://localhost:8080
-- **Engine API**: http://localhost:9090
-- **Blockchain API**: http://localhost:3001
+- **Blockchain Service**: http://localhost:3001
+- **PostgreSQL**: localhost:5432
+- **Redis**: localhost:6379
 
-## 🏗️ Architecture
+## 📁 Project Structure
 
-### 🚪 Gateway Service (Go) - Port 8080
-- API Gateway with authentication and rate limiting
-- Routes requests to appropriate services
-
-### ⚙️ Engine Service (Go) - Port 9090
-- File processing, compression, and encryption
-- Backup orchestration and job management
-
-### 🔗 Blockchain Service (JavaScript) - Port 3001
-- Filecoin and IPFS integration
-- Wallet management and AI-powered deal optimization
-
-### 🖥️ Frontend Service (JavaScript) - Port 3000
-- Modern web dashboard with real-time monitoring
-- File upload and backup management interface
-
-## 📚 Documentation
-
-- **[START.md](START.md)** - Detailed startup instructions and troubleshooting
-- **[SERVICE-GUIDE.md](SERVICE-GUIDE.md)** - Service explanations and commands  
-- **[WALLET-SETUP.md](WALLET-SETUP.md)** - Wallet setup and funding guide
-- **[AI-OPTIMIZATION.md](AI-OPTIMIZATION.md)** - AI deal optimization strategy
-- **[SECURITY.md](SECURITY.md)** - Security features and best practices
-
-## 🔧 Configuration Examples
-
-### Key Environment Variables
-```bash
-# Security (Auto-generated in automated setup)
-JWT_SECRET=auto-generated-64-character-secret
-ENCRYPTION_KEY=auto-generated-32-character-key
-WALLET_ENCRYPTION_KEY=auto-generated-32-character-key
-
-# Network (Configurable)
-FILECOIN_NETWORK=calibration  # or mainnet
-FILECOIN_NODE_URL=https://api.calibration.node.glif.io/rpc/v1
-
-# IPFS (Demo credentials work out-of-box)
-IPFS_URL=https://ipfs.infura.io:5001
-IPFS_PROJECT_ID=your-project-id
+```
+Filstore/
+├── services/
+│   ├── blockchain/          # Core blockchain & storage service
+│   ├── frontend/           # Web interface & CLI tools
+│   ├── gateway/            # API gateway & authentication
+│   └── engine/             # Background processing engine
+├── data/
+│   ├── config/             # Wallet configurations
+│   ├── logs/               # Application logs
+│   ├── postgres/           # Database data
+│   ├── redis/              # Cache data
+│   ├── uploads/            # Temporary file uploads
+│   └── wallets/            # Wallet key files
+├── scripts/                # Utility scripts
+├── shared/                 # Shared configurations
+└── database/               # Database schema
 ```
 
-## 🎯 When to Use Each Method
+## 🔧 Services
 
-| Method | Best For | Time | Setup |
-|--------|----------|------|-------|
-| **Automated** | Beginners, testing | 2 minutes | Zero config |
-| **Manual** | Advanced users, production | 10+ minutes | Full control |
-| **Development** | Code contributors | Variable | Service-by-service |
+### Blockchain Service (Port 3001)
+- Filecoin wallet management
+- IPFS file operations
+- Storage optimization
+- Cost calculations
 
-## 📋 Management Commands
+### Frontend Service (Port 3000)
+- Web dashboard
+- CLI interface
+- File upload/download
+- Wallet management UI
 
-```powershell
-# Start/Stop
-docker-compose up -d          # Start all services
-docker-compose down           # Stop all services  
+### Gateway Service (Port 8080)
+- API gateway
+- Web3 authentication
+- Rate limiting
+- CORS handling
 
-# Monitoring
-docker-compose logs -f        # View logs
-docker-compose ps             # Check status
+### Engine Service (Port 9090)
+- Background job processing
+- Automated backups
+- File compression/encryption
+- Storage optimization
 
-# Maintenance  
-docker-compose restart       # Restart services
-docker-compose down -v        # Clean reset
-```
+## 🔐 Wallet Configuration
 
-## 🚨 Troubleshooting
+The system supports multiple Filecoin networks:
 
-### Quick Fixes:
-```powershell
-# Services not starting
-docker-compose ps
-docker-compose logs -f
+### Calibration Testnet
+- Default configuration for development
+- Free test tokens available via faucet
+- Located in `data/wallets/wallet-calibration.json`
 
-# Port conflicts  
-netstat -an | findstr ":3000"
+### Mainnet
+- Production configuration
+- Real FIL tokens required
+- Located in `data/wallets/wallet-mainnet.json`
 
-# Clean reset
-docker-compose down -v
-docker-compose up -d --build
-```
+### Configuration Files
 
-## 🌟 Key Features
+Wallet configurations are stored in:
+- `data/config/wallet-config.json` - Main wallet settings
+- `data/config/wallet.env` - Environment-specific settings
 
-- **🔐 Automatic Encryption** - AES-256 encryption before storage
-- **🌍 Decentralized Storage** - Files stored on Filecoin network  
-- **🤖 AI Optimization** - Smart storage deal selection
-- **📊 Real-time Dashboard** - Monitor all operations
-- **🛡️ Security First** - Enterprise-grade security
+## 🛠️ Development
 
-## 🏆 Why Choose This System?
+### Local Development Setup
 
-### For Web2 Users:
-- **Zero Learning Curve** - Works like traditional cloud storage
-- **Automatic Setup** - No crypto knowledge required  
-- **Cost Savings** - Often cheaper than traditional cloud
+1. **Install Dependencies**:
+   ```bash
+   # Blockchain service
+   cd services/blockchain && npm install
+   
+   # Frontend service
+   cd ../frontend && npm install
+   ```
 
-### For Web3 Users:
-- **Full Control** - Complete configuration freedom
-- **Advanced Features** - AI optimization, custom providers
-- **Integration Ready** - APIs for custom applications
+2. **Start Services Individually**:
+   ```bash
+   # Start blockchain service
+   cd services/blockchain && npm start
+   
+   # Start frontend service
+   cd services/frontend && npm start
+   ```
 
-## 📄 License
-
-MIT License - see LICENSE file for details.
-
-Ready to get started? Run `quick-setup.bat` for instant setup! 🚀
-# Using Make (recommended)
-make setup
-make run
-
-# Or using Docker Compose directly
-docker-compose build
-docker-compose up -d
-```
-
-### 3. Access Services
-- **Web Dashboard**: http://localhost:3000
-- **Gateway API**: http://localhost:8080
-- **Engine API**: http://localhost:9090
-- **Blockchain API**: http://localhost:3001
-
-## � Documentation
-
-- **[START.md](START.md)** - How to start the system without Make
-- **[SERVICE-GUIDE.md](SERVICE-GUIDE.md)** - Detailed service explanations and commands
-- **[WALLET-SETUP.md](WALLET-SETUP.md)** - Complete wallet setup and funding guide
-- **[AI-OPTIMIZATION.md](AI-OPTIMIZATION.md)** - AI-powered Filecoin deal optimization
-
-## �📋 Available Commands (Make)
-
-```bash
-make build          # Build all services
-make run            # Run all services in background
-make dev            # Run with logs visible
-make stop           # Stop all services
-make clean          # Clean up containers and volumes
-make logs           # View service logs
-make test           # Run all tests
-make setup          # Setup development environment
-```
-
-## 🔧 Configuration
+3. **Database Setup**:
+   ```bash
+   # Start PostgreSQL and Redis
+   docker-compose up -d postgres redis
+   
+   # Run database migrations
+   docker exec -it filstore-postgres-1 psql -U filstore -d filstore -f /docker-entrypoint-initdb.d/schema.sql
+   ```
 
 ### Environment Variables
-Key configuration options in `.env`:
 
+Copy and configure environment files:
+- `shared/config/dev.env` - Development settings
+- `shared/config/prod.env` - Production settings
+
+Key variables:
+- `FILECOIN_NETWORK` - Network selection (calibration/mainnet)
+- `PINATA_API_KEY` - Pinata service API key
+- `PINATA_SECRET_KEY` - Pinata service secret
+- `DATABASE_URL` - PostgreSQL connection string
+- `REDIS_URL` - Redis connection string
+
+## 🔍 API Endpoints
+
+### Gateway API (http://localhost:8080/api/v1)
+- `GET /health` - Service health check
+- `GET /status` - System status
+- `POST /backup` - Initiate backup
+- `GET /backup/:id` - Get backup status
+- `POST /faucet` - Get testnet tokens
+- `GET /balance/:address` - Check wallet balance
+
+### Blockchain API (http://localhost:3001)
+- `POST /storage/upload` - Upload file to IPFS
+- `POST /storage/pin` - Pin file to Pinata
+- `GET /storage/ipfs/:hash` - Retrieve file from IPFS
+- `POST /storage/optimize` - Get storage optimization
+- `POST /storage/cost` - Calculate storage costs
+- `GET /storage/providers` - List storage providers
+
+### Wallet API (http://localhost:3001/wallet)
+- `POST /create` - Create new wallet
+- `GET /balance` - Get wallet balance
+- `POST /send` - Send FIL tokens
+- `GET /history` - Transaction history
+
+## 🐳 Docker
+
+### Build Services
 ```bash
-# Filecoin Settings
-FILECOIN_NODE_URL=https://api.node.glif.io/rpc/v1
-WALLET_PRIVATE_KEY=your_wallet_private_key
-FILECOIN_NETWORK=mainnet
+# Build all services
+docker-compose build
 
-# IPFS Settings  
-IPFS_URL=https://ipfs.infura.io:5001
-IPFS_PROJECT_ID=your_project_id
-IPFS_PROJECT_SECRET=your_project_secret
-
-# Security
-JWT_SECRET=your_jwt_secret
-ENCRYPTION_KEY=your_32_character_encryption_key
+# Build specific service
+docker-compose build blockchain
 ```
 
-## 📦 Service Details
+### Manage Containers
+```bash
+# Start all services
+docker-compose up -d
 
-### Gateway Service
-- **Language**: Go 1.21
-- **Framework**: Gin
-- **Features**: JWT auth, rate limiting, request routing
-- **Health Check**: `GET /api/v1/health`
+# Stop all services
+docker-compose down
 
-### Engine Service  
-- **Language**: Go 1.21
-- **Features**: File compression, encryption, backup processing
-- **Algorithms**: AES-256 encryption, gzip compression
-- **Job Management**: Concurrent processing with progress tracking
+# View logs
+docker-compose logs -f blockchain
 
-### Blockchain Service
-- **Language**: Node.js 18
-- **Features**: Filecoin integration, IPFS uploads, wallet management
-- **AI Features**: Cost optimization, provider selection
-- **Storage**: Multi-provider redundancy
+# Restart service
+docker-compose restart blockchain
+```
 
-### Frontend Service
-- **Language**: Node.js 18  
-- **UI**: Modern responsive design with TailwindCSS
-- **Features**: Real-time dashboard, CLI tools, backup management
-- **API Client**: Axios-based client for service communication
+### Database Management
+```bash
+# Access PostgreSQL
+docker exec -it filstore-postgres-1 psql -U filstore -d filstore
 
-## 🗄️ Data Storage
+# Access Redis
+docker exec -it filstore-redis-1 redis-cli
+```
 
-### Local Directories
-- `data/uploads/` - Temporary file uploads
-- `data/logs/` - Application logs
-- `data/redis/` - Redis persistence
-- `data/postgres/` - PostgreSQL data
+## 🧪 Testing
 
-### External Storage
-- **IPFS**: Content-addressed storage
-- **Filecoin**: Long-term decentralized storage
-- **Database**: PostgreSQL for metadata
-- **Cache**: Redis for session and temporary data
+### Run Tests
+```bash
+# Test wallet generation
+node scripts/test-wallet-generation.js
 
-## 🔐 Security Features
+# Test storage optimization
+node scripts/test-storage-optimization.js
 
-- JWT-based authentication
-- AES-256 encryption for sensitive data
-- Rate limiting and CORS protection
-- Secure wallet management
+# Cleanup old files
+node scripts/cleanup-old-files.js
+```
+
+### Health Checks
+```bash
+# Check service health
+curl http://localhost:8080/api/v1/health
+curl http://localhost:3001/health
+
+# Check wallet balance
+curl http://localhost:8080/api/v1/balance/YOUR_WALLET_ADDRESS
+```
+
+## 📊 Monitoring
+
+### Logs
+- Application logs: `data/logs/`
+- Docker logs: `docker-compose logs [service]`
+
+### Database
+- PostgreSQL admin: Connect to localhost:5432
+- Redis monitoring: `docker exec -it filstore-redis-1 redis-cli monitor`
+
+## 🔒 Security
+
+- All API endpoints require Web3 wallet authentication
+- Rate limiting on all public endpoints
+- CORS protection
+- File upload size limits (100MB)
 - Input validation and sanitization
-
-## 📊 Monitoring & Observability
-
-- Real-time system health monitoring
-- Backup progress tracking
-- Service status dashboards
-- Comprehensive logging
-- Performance metrics
-
-## 🧪 Development
-
-### Local Development
-```bash
-# Install dependencies
-make install
-
-# Run in development mode
-make dev
-
-# Run tests
-make test
-
-# Format code
-make format
-
-# Lint code
-make lint
-```
-
-### Adding New Features
-1. Update the appropriate service in `services/`
-2. Update API contracts in `shared/proto/` if needed
-3. Update frontend UI if applicable
-4. Add tests and documentation
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
+2. Create a feature branch: `git checkout -b feature/new-feature`
+3. Commit changes: `git commit -am 'Add new feature'`
+4. Push to branch: `git push origin feature/new-feature`
+5. Submit a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-- **Issues**: GitHub Issues
-- **Documentation**: See `/docs` directory (coming soon)
-- **Community**: Filecoin Community Slack
+- Check the logs: `docker-compose logs [service]`
+- Verify configurations in `data/config/`
+- Ensure all required environment variables are set
+- Test network connectivity to Filecoin and IPFS endpoints
 
-## 🔮 Roadmap
 
-- [ ] Advanced AI optimization algorithms
-- [ ] Multi-chain support (Ethereum, Polygon)
-- [ ] Mobile app interface
-- [ ] Automated testing pipeline
-- [ ] Kubernetes deployment manifests
-- [ ] Advanced monitoring with Prometheus/Grafana
+---
+
+

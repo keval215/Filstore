@@ -10,7 +10,6 @@ type Config struct {
 	BlockchainURL  string
 	RedisURL       string
 	PostgresURL    string
-	JWTSecret      string
 	LogLevel       string
 	AllowedOrigins []string
 }
@@ -22,7 +21,6 @@ func Load() *Config {
 		BlockchainURL: getEnv("BLOCKCHAIN_URL", "http://localhost:3001"),
 		RedisURL:      getEnv("REDIS_URL", "redis://localhost:6379"),
 		PostgresURL:   getEnv("POSTGRES_URL", "postgres://user:password@localhost:5432/filecoin_backup"),
-		JWTSecret:     getEnv("JWT_SECRET", "your_jwt_secret_here"),
 		LogLevel:      getEnv("LOG_LEVEL", "info"),
 		AllowedOrigins: []string{
 			getEnv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8080"),
