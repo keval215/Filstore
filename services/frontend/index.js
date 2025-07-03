@@ -21,6 +21,12 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files
 app.use('/static', express.static(path.join(__dirname, 'src/web/public')));
 
+// Also serve JS files directly from root for compatibility
+app.use('/metamask.js', express.static(path.join(__dirname, 'src/web/public/metamask.js')));
+app.use('/ui.js', express.static(path.join(__dirname, 'src/web/public/ui.js')));
+app.use('/dashboard.js', express.static(path.join(__dirname, 'src/web/public/dashboard.js')));
+app.use('/styles.css', express.static(path.join(__dirname, 'src/web/public/styles.css')));
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({
