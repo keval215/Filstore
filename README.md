@@ -63,6 +63,7 @@ node scripts/docker-init-wallets.js
 - **Web Dashboard**: http://localhost:3000
 - **API Gateway**: http://localhost:8080
 - **Blockchain Service**: http://localhost:3001
+- **Data-Prep Service**: http://localhost:3002
 - **PostgreSQL**: localhost:5432
 - **Redis**: localhost:6379
 
@@ -74,7 +75,8 @@ Filstore/
 │   ├── blockchain/          # Core blockchain & storage service
 │   ├── frontend/           # Web interface & CLI tools
 │   ├── gateway/            # API gateway & authentication
-│   └── engine/             # Background processing engine
+│   ├── engine/             # Background processing engine
+│   └── data-prep/          # Data preparation and processing
 ├── data/
 │   ├── config/             # Wallet configurations
 │   ├── logs/               # Application logs
@@ -112,6 +114,12 @@ Filstore/
 - Automated backups
 - File compression/encryption
 - Storage optimization
+
+### Data-Prep Service (Port 3002)
+- CAR file creation for Filecoin storage
+- CID metadata management
+- File monitoring and processing
+- **Web3 Authentication Required** for all write operations
 
 ## 🔐 Wallet Configuration
 
@@ -201,6 +209,18 @@ Key variables:
 - `POST /send` - Send FIL tokens
 - `GET /history` - Transaction history
 
+### Data-Prep API (http://localhost:3002)
+- `GET /health` - Service health check (no auth required)
+- `GET /status` - Service status (no auth required) 
+- `POST /car/create` - Create CAR file (**Web3 signature required**)
+- `POST /car/verify` - Verify CAR file (**Web3 signature required**)
+- `GET /cars` - List processed CAR files (read-only)
+- `GET /cid/:cid` - Get CID information (read-only)
+- `GET /cids/search` - Search CIDs (read-only)
+- `POST /watcher/start` - Start file watcher (**Web3 signature required**)
+- `POST /watcher/stop` - Stop file watcher (**Web3 signature required**)
+- `DELETE /cleanup` - Cleanup old files (**Web3 signature required**)
+
 ## 🐳 Docker
 
 ### Build Services
@@ -272,11 +292,22 @@ curl http://localhost:8080/api/v1/balance/YOUR_WALLET_ADDRESS
 
 ## 🔒 Security
 
-- All API endpoints require Web3 wallet authentication
+- **Web3-Only Authentication**: All write operations require MetaMask/Web3 wallet signatures
+- No traditional username/password authentication
+- Wallet address validation for all secure operations
 - Rate limiting on all public endpoints
 - CORS protection
 - File upload size limits (100MB)
 - Input validation and sanitization
+
+### Web3 Authentication Headers
+
+For write operations, include these headers:
+```
+X-Wallet-Address: 0x1234...abcd
+X-Wallet-Signature: 0x5678...ef90
+X-Signed-Message: "Authorize Filstore operation at 2025-07-03T06:45:00.000Z"
+```
 
 ## 🤝 Contributing
 

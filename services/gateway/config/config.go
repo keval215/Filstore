@@ -20,7 +20,7 @@ func Load() *Config {
 		EngineURL:     getEnv("ENGINE_URL", "http://localhost:9090"),
 		BlockchainURL: getEnv("BLOCKCHAIN_URL", "http://localhost:3001"),
 		RedisURL:      getEnv("REDIS_URL", "redis://localhost:6379"),
-		PostgresURL:   getEnv("POSTGRES_URL", "postgres://user:password@localhost:5432/filecoin_backup"),
+		PostgresURL:   getEnv("POSTGRES_URL", "postgres://filecoin_user:filecoin_pass@postgres:5432/filecoin_backup"),
 		LogLevel:      getEnv("LOG_LEVEL", "info"),
 		AllowedOrigins: []string{
 			getEnv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8080"),

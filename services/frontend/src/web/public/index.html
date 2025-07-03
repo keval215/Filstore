@@ -3,380 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Filecoin Backup Dashboard</title>
+    <title>Filstore - Decentralized Filecoin Storage</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .wallet-connect-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 1000;
-        }
-        
-        .wallet-connect-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            max-width: 400px;
-            width: 90%;
-        }
-        
-        .wallet-option {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 0.5rem;
-        }
-        
-        .wallet-option:hover {
-            border-color: #3b82f6;
-            background: #f0f9ff;
-        }
-        
-        .wallet-icon {
-            width: 40px;
-            height: 40px;
-            margin-right: 1rem;
-        }
-        
-        .connected-wallet {
-            background: #10b981;
-            color: white;
-            padding: 0.5rem 1rem;
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(8px);
             border-radius: 20px;
-            font-size: 0.875rem;
+        }
+        .hero-bg {
+            background: linear-gradient(135deg, #2563eb 0%, #10b981 100%);
         }
     </style>
 </head>
-<body class="bg-gray-100">
-    <!-- Navigation -->
-    <nav class="bg-blue-600 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center py-4">
-                <div class="flex items-center space-x-4">
-                    <i class="fas fa-hdd text-2xl"></i>
-                    <h1 class="text-xl font-bold">Filecoin Backup</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm">Status: <span id="system-status" class="text-green-300">Online</span></span>
-                    <div id="wallet-info" class="hidden">
-                        <span class="connected-wallet" id="wallet-address">Not Connected</span>
+<body class="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen">
+    <!-- Home Page / Hero Section -->
+    <section id="home-section" class="hero-bg py-16 min-h-screen flex flex-col justify-center items-center">
+        <div class="max-w-3xl mx-auto text-center">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-6 drop-shadow-lg">Welcome to Filstore</h1>
+            <p class="text-xl md:text-2xl text-blue-100 mb-8">Filstore is a secure, decentralized, and effortless Filecoin storage platform. Easily upload, backup, and manage your data on the Filecoin network with full transparency and control. <br><br><span class="font-semibold text-white">Connect your wallet to get started!</span></p>
+            <div class="flex flex-col items-center space-y-4">
+                <button id="connect-wallet-btn" class="bg-white text-blue-700 font-bold px-8 py-4 rounded-lg shadow hover:bg-blue-100 transition text-xl">
+                    <i class="fas fa-wallet mr-2"></i>Connect Wallet
+                </button>
+                <button id="disconnect-wallet-btn" class="bg-red-500 hover:bg-red-700 text-white px-8 py-4 rounded-lg shadow hidden text-xl">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Disconnect
+                </button>
+                <div id="wallet-info" class="hidden mt-4">
+                    <div class="glass p-4 flex flex-col items-center">
+                        <i class="fas fa-user-shield text-3xl text-blue-600 mb-2"></i>
+                        <span class="connected-wallet text-lg font-semibold text-green-600" id="wallet-address">Not Connected</span>
                     </div>
-                    <button id="connect-wallet-btn" class="bg-green-500 hover:bg-green-700 px-4 py-2 rounded">
-                        <i class="fas fa-wallet"></i> Connect Wallet
-                    </button>
-                    <button id="disconnect-wallet-btn" class="bg-red-500 hover:bg-red-700 px-4 py-2 rounded hidden">
-                        <i class="fas fa-sign-out-alt"></i> Disconnect
-                    </button>
                 </div>
             </div>
         </div>
-    </nav>
+        <div id="network-warning" style="color:red; display:none;" class="text-center mt-6"></div>
+    </section>
 
-    <!-- Wallet Connection Required Notice -->
-    <div id="wallet-required-notice" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 m-4">
-        <div class="flex items-center">
-            <div class="flex-shrink-0">
-                <i class="fas fa-exclamation-triangle text-yellow-500"></i>
-            </div>
-            <div class="ml-3">
-                <p class="text-sm">
-                    <strong>Wallet Connection Required:</strong> Please connect your Web3 wallet to access backup features.
-                    This ensures secure, decentralized authentication for your Filecoin operations.
-                </p>
-            </div>
+    <!-- Dashboard/Data Upload Section (hidden until wallet connected) -->
+    <section id="dashboard-section" class="hidden max-w-7xl mx-auto px-4 py-12">
+        <div class="mb-10 text-center">
+            <h2 class="text-4xl font-bold text-blue-700 mb-2">Upload & Manage Your Data</h2>
+            <p class="text-lg text-gray-600">Easily backup, restore, and monitor your files on Filecoin.</p>
         </div>
-    </div>
-
-    <!-- Main Dashboard Content (Hidden until wallet connected) -->
-    <div id="dashboard-content" class="hidden">
         <!-- Dashboard Stats -->
-        <div class="max-w-7xl mx-auto px-4 py-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-lg shadow-lg">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
-                            <i class="fas fa-backup text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm text-gray-600">Total Backups</p>
-                            <p class="text-2xl font-bold" id="total-backups">0</p>
-                        </div>
-                    </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+            <div class="glass p-6 flex flex-col items-center shadow-lg">
+                <div class="p-4 rounded-full bg-blue-100 text-blue-600 mb-2">
+                    <i class="fas fa-database text-2xl"></i>
                 </div>
-                
-                <div class="bg-white p-6 rounded-lg shadow-lg">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-green-100 text-green-600">
-                            <i class="fas fa-check-circle text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm text-gray-600">Successful</p>
-                            <p class="text-2xl font-bold" id="successful-backups">0</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-white p-6 rounded-lg shadow-lg">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-red-100 text-red-600">
-                            <i class="fas fa-times-circle text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm text-gray-600">Failed</p>
-                            <p class="text-2xl font-bold" id="failed-backups">0</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-white p-6 rounded-lg shadow-lg">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
-                            <i class="fas fa-database text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm text-gray-600">Total Storage</p>
-                            <p class="text-2xl font-bold" id="total-storage">0 GB</p>
-                        </div>
-                    </div>
-                </div>
+                <p class="text-gray-600">Total Backups</p>
+                <p class="text-3xl font-bold mt-2" id="total-backups">0</p>
             </div>
-
-            <!-- Quick Actions -->
-            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
-                <h2 class="text-xl font-bold mb-4">Quick Actions</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button id="new-backup-btn" class="bg-blue-500 hover:bg-blue-700 text-white px-6 py-3 rounded-lg">
-                        <i class="fas fa-plus mr-2"></i>New Backup
-                    </button>
-                    <button id="restore-btn" class="bg-green-500 hover:bg-green-700 text-white px-6 py-3 rounded-lg">
-                        <i class="fas fa-download mr-2"></i>Restore Files
-                    </button>
-                    <button id="manage-wallets-btn" class="bg-purple-500 hover:bg-purple-700 text-white px-6 py-3 rounded-lg">
-                        <i class="fas fa-wallet mr-2"></i>Manage Wallets
-                    </button>
+            <div class="glass p-6 flex flex-col items-center shadow-lg">
+                <div class="p-4 rounded-full bg-green-100 text-green-600 mb-2">
+                    <i class="fas fa-check-circle text-2xl"></i>
                 </div>
+                <p class="text-gray-600">Successful</p>
+                <p class="text-3xl font-bold mt-2" id="successful-backups">0</p>
             </div>
-
-            <!-- Recent Backups -->
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h2 class="text-xl font-bold mb-4">Recent Backups</h2>
-                <div id="recent-backups" class="space-y-4">
-                    <p class="text-gray-500 text-center py-8">No backups yet. Create your first backup to get started!</p>
+            <div class="glass p-6 flex flex-col items-center shadow-lg">
+                <div class="p-4 rounded-full bg-red-100 text-red-600 mb-2">
+                    <i class="fas fa-times-circle text-2xl"></i>
                 </div>
+                <p class="text-gray-600">Failed</p>
+                <p class="text-3xl font-bold mt-2" id="failed-backups">0</p>
+            </div>
+            <div class="glass p-6 flex flex-col items-center shadow-lg">
+                <div class="p-4 rounded-full bg-purple-100 text-purple-600 mb-2">
+                    <i class="fas fa-hdd text-2xl"></i>
+                </div>
+                <p class="text-gray-600">Total Storage</p>
+                <p class="text-3xl font-bold mt-2" id="total-storage">0 GB</p>
             </div>
         </div>
-    </div>
-
-    <!-- Wallet Connection Modal -->
-    <div id="wallet-connect-modal" class="wallet-connect-modal">
-        <div class="wallet-connect-content">
-            <h2 class="text-2xl font-bold mb-6 text-center">Connect Your Wallet</h2>
-            
-            <div class="wallet-option" onclick="connectMetaMask()">
-                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEyIiBoZWlnaHQ9IjE4OSIgdmlld0JveD0iMCAwIDIxMiAxODkiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiPgo8cGF0aCBkPSJNMTIwLjA3NiAwbC0zLjY1NCAyLjc5TDE2LjU4NSA5NS42OTVMMTA0LjQwNCAzMS43ODFMMTIwLjA3NiAwWiIgZmlsbD0iI0U0NzYxQiI+PC9wYXRoPgo8L2c+CjwvZz4KPC9zdmc+" class="wallet-icon" alt="MetaMask">
-                <div>
-                    <h3 class="font-semibold">MetaMask</h3>
-                    <p class="text-sm text-gray-600">Connect using MetaMask wallet</p>
-                </div>
-            </div>
-
-            <div class="wallet-option" onclick="connectWalletConnect()">
-                <div class="wallet-icon bg-blue-500 rounded-full flex items-center justify-center">
-                    <i class="fas fa-qrcode text-white"></i>
-                </div>
-                <div>
-                    <h3 class="font-semibold">WalletConnect</h3>
-                    <p class="text-sm text-gray-600">Scan QR code with your mobile wallet</p>
-                </div>
-            </div>
-
-            <div class="wallet-option" onclick="connectCoinbaseWallet()">
-                <div class="wallet-icon bg-blue-600 rounded-full flex items-center justify-center">
-                    <i class="fas fa-wallet text-white"></i>
-                </div>
-                <div>
-                    <h3 class="font-semibold">Coinbase Wallet</h3>
-                    <p class="text-sm text-gray-600">Connect using Coinbase Wallet</p>
-                </div>
-            </div>
-
-            <div class="mt-6 text-center">
-                <button onclick="closeWalletModal()" class="text-gray-500 hover:text-gray-700">Cancel</button>
+        <!-- Quick Actions -->
+        <div class="glass bg-white p-8 rounded-lg shadow-lg mb-10">
+            <h2 class="text-2xl font-bold mb-6 text-blue-700">Quick Actions</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button id="new-backup-btn" class="bg-blue-600 hover:bg-blue-800 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow">
+                    <i class="fas fa-plus mr-2"></i>New Backup
+                </button>
+                <button id="restore-btn" class="bg-green-600 hover:bg-green-800 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow">
+                    <i class="fas fa-download mr-2"></i>Restore Files
+                </button>
             </div>
         </div>
-    </div>
+        <!-- Recent Backups -->
+        <div class="glass bg-white p-8 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-bold mb-6 text-blue-700">Recent Backups</h2>
+            <div id="recent-backups" class="space-y-4">
+                <p class="text-gray-500 text-center py-8">No backups yet. Create your first backup to get started!</p>
+            </div>
+        </div>
+    </section>
 
+    <!-- Scripts -->
+    <script src="/static/metamask.js" type="text/javascript"></script>
+    <script src="/static/ui.js" type="text/javascript"></script>
     <script>
-        // Web3 Wallet Authentication
-        class WalletAuth {
-            constructor() {
-                this.walletAddress = null;
-                this.isConnected = false;
-                this.init();
-            }
-
-            init() {
-                this.checkExistingConnection();
-                this.setupEventListeners();
-            }
-
-            async checkExistingConnection() {
-                if (typeof window.ethereum !== 'undefined') {
-                    try {
-                        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                        if (accounts.length > 0) {
-                            this.handleWalletConnected(accounts[0]);
-                        }
-                    } catch (error) {
-                        console.log('No existing wallet connection');
-                    }
-                }
-            }
-
-            setupEventListeners() {
-                document.getElementById('connect-wallet-btn').addEventListener('click', () => {
-                    document.getElementById('wallet-connect-modal').style.display = 'block';
-                });
-
-                document.getElementById('disconnect-wallet-btn').addEventListener('click', () => {
-                    this.disconnectWallet();
-                });
-
-                // Listen for account changes
-                if (typeof window.ethereum !== 'undefined') {
-                    window.ethereum.on('accountsChanged', (accounts) => {
-                        if (accounts.length === 0) {
-                            this.disconnectWallet();
-                        } else {
-                            this.handleWalletConnected(accounts[0]);
-                        }
-                    });
-                }
-            }
-
-            async connectMetaMask() {
-                if (typeof window.ethereum !== 'undefined') {
-                    try {
-                        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                        this.handleWalletConnected(accounts[0]);
-                        this.closeWalletModal();
-                    } catch (error) {
-                        console.error('MetaMask connection failed:', error);
-                        alert('Failed to connect MetaMask. Please try again.');
-                    }
-                } else {
-                    alert('MetaMask is not installed. Please install MetaMask to continue.');
-                }
-            }
-
-            handleWalletConnected(address) {
-                this.walletAddress = address;
-                this.isConnected = true;
-                
-                // Update UI
-                document.getElementById('wallet-address').textContent = this.formatAddress(address);
-                document.getElementById('wallet-info').classList.remove('hidden');
-                document.getElementById('connect-wallet-btn').classList.add('hidden');
-                document.getElementById('disconnect-wallet-btn').classList.remove('hidden');
-                document.getElementById('wallet-required-notice').classList.add('hidden');
-                document.getElementById('dashboard-content').classList.remove('hidden');
-
-                // Load dashboard data
-                this.loadDashboardData();
-            }
-
-            disconnectWallet() {
-                this.walletAddress = null;
-                this.isConnected = false;
-                
-                // Update UI
-                document.getElementById('wallet-info').classList.add('hidden');
-                document.getElementById('connect-wallet-btn').classList.remove('hidden');
-                document.getElementById('disconnect-wallet-btn').classList.add('hidden');
-                document.getElementById('wallet-required-notice').classList.remove('hidden');
-                document.getElementById('dashboard-content').classList.add('hidden');
-            }
-
-            formatAddress(address) {
-                return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
-            }
-
-            closeWalletModal() {
-                document.getElementById('wallet-connect-modal').style.display = 'none';
-            }
-
-            async signMessage(message) {
-                if (!this.isConnected) {
-                    throw new Error('Wallet not connected');
-                }
-
-                try {
-                    const signature = await window.ethereum.request({
-                        method: 'personal_sign',
-                        params: [message, this.walletAddress]
-                    });
-                    return signature;
-                } catch (error) {
-                    throw new Error('Failed to sign message');
-                }
-            }
-
-            async loadDashboardData() {
-                // TODO: Load backup data for connected wallet
-                console.log('Loading data for wallet:', this.walletAddress);
-            }
+      // Show dashboard only if wallet is connected
+      document.addEventListener('DOMContentLoaded', function() {
+        function showSections(address) {
+          const home = document.getElementById('home-section');
+          const dash = document.getElementById('dashboard-section');
+          if (address) {
+            home.classList.add('hidden');
+            dash.classList.remove('hidden');
+          } else {
+            home.classList.remove('hidden');
+            dash.classList.add('hidden');
+          }
         }
-
-        // Global functions for modal
-        const walletAuth = new WalletAuth();
-
-        function connectMetaMask() {
-            walletAuth.connectMetaMask();
-        }
-
-        function connectWalletConnect() {
-            alert('WalletConnect integration coming soon!');
-        }
-
-        function connectCoinbaseWallet() {
-            alert('Coinbase Wallet integration coming soon!');
-        }
-
-        function closeWalletModal() {
-            walletAuth.closeWalletModal();
-        }
-
-        // Dashboard functionality (only available when wallet connected)
-        document.getElementById('new-backup-btn').addEventListener('click', async () => {
-            if (!walletAuth.isConnected) {
-                alert('Please connect your wallet first');
-                return;
-            }
-            
-            try {
-                const message = `Create backup at ${new Date().toISOString()}`;
-                const signature = await walletAuth.signMessage(message);
-                console.log('Backup signature:', signature);
-                // TODO: Proceed with backup creation
-                alert('Backup creation signed! Integration with backend coming next.');
-            } catch (error) {
-                alert('Failed to sign backup request');
-            }
+        // On load
+        showSections(localStorage.getItem('walletAddress'));
+        // Listen for wallet connect/disconnect
+        window.addEventListener('walletConnected', function(e) {
+          showSections(e.detail.address);
         });
+      });
     </script>
 </body>
 </html>

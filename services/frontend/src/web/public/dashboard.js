@@ -367,6 +367,11 @@ window.dashboard = dashboard; // Make it globally available
 
 document.addEventListener('DOMContentLoaded', () => {
     // ...existing initialization code...
+    const address = localStorage.getItem('walletAddress');
+    if (address) {
+        const el = document.getElementById('wallet-address');
+        if (el) el.innerText = `Connected: ${address}`;
+    }
 });
 
 // Handle keyboard shortcuts

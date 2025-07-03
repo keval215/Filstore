@@ -382,8 +382,12 @@ func parseAttoFIL(attoFil string) float64 {
 	return 0.0
 }
 
-// isValidFilecoinAddress validates Filecoin address format
+// isValidFilecoinAddress validates Filecoin or EVM address format
 func isValidFilecoinAddress(address string) bool {
+	// Accept EVM addresses (0x...)
+	if strings.HasPrefix(address, "0x") && len(address) == 42 {
+		return true
+	}
 	// Filecoin addresses start with f (mainnet) or t (testnet) followed by 1,2,3,4
 	patterns := []string{
 		`^[ft]1[a-zA-Z0-9]{38,39}$`, // f1/t1 addresses (secp256k1) - can be 38 or 39 chars
@@ -433,8 +437,11 @@ func GetCalibrationExplorerURL(address string) string {
 	return "https://beryx.zondax.ch/address/" + address + "?network=calibration"
 }
 
-// ValidateTestnetAddress specifically validates testnet addresses (starting with 't')
+// ValidateTestnetAddress specifically validates testnet addresses (starting with 't') or EVM addresses
 func ValidateTestnetAddress(address string) bool {
+	if strings.HasPrefix(address, "0x") && len(address) == 42 {
+		return true
+	}
 	if !strings.HasPrefix(address, "t") {
 		return false
 	}
