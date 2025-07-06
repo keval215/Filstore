@@ -103,6 +103,8 @@ services:
       - data-prep
     networks:
       - filecoin-network
+    volumes:
+      - ./services/frontend/src/web/public:/app/src/web/public
 
   redis:
     image: redis:7-alpine
@@ -124,6 +126,14 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    networks:
+      - filecoin-network
+
+  deal-analyzer:
+    build:
+      context: ./services/deal-analyzer
+    ports:
+      - "8000:8000"
     networks:
       - filecoin-network
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -42,6 +43,34 @@ func main() {
 		api.POST("/faucet", middleware.GetTestnetTokens())
 		api.GET("/balance/:address", middleware.GetWalletBalance())
 	}
+
+	// Proxy /api/mainnet/deals to deal-analyzer
+	r.GET("/api/mainnet/deals", func(c *gin.Context) {
+		limit := c.DefaultQuery("limit", "100")
+		resp, err := http.Get("http://deal-analyzer:8000/api/mainnet/deals?limit=" + limit)
+		if err != nil {
+			log.Printf("Error connecting to deal-analyzer: %v", err)
+			c.JSON(500, gin.H{"error": "Failed to fetch from deal-analyzer", "details": err.Error()})
+			return
+		}
+		defer resp.Body.Close()
+		body, _ := io.ReadAll(resp.Body)
+		c.Data(resp.StatusCode, resp.Header.Get("Content-Type"), body)
+	})
+
+	// Proxy /api/testnet/deals to deal-analyzer
+	r.GET("/api/testnet/deals", func(c *gin.Context) {
+		limit := c.DefaultQuery("limit", "100")
+		resp, err := http.Get("http://deal-analyzer:8000/api/testnet/deals?limit=" + limit)
+		if err != nil {
+			log.Printf("Error connecting to deal-analyzer: %v", err)
+			c.JSON(500, gin.H{"error": "Failed to fetch from deal-analyzer", "details": err.Error()})
+			return
+		}
+		defer resp.Body.Close()
+		body, _ := io.ReadAll(resp.Body)
+		c.Data(resp.StatusCode, resp.Header.Get("Content-Type"), body)
+	})
 
 	// Create HTTP server
 	srv := &http.Server{

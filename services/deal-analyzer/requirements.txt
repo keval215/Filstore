@@ -1,4 +1,9 @@
 fastapi
 uvicorn
 requests
-pydantic 
+pydantic
+zstandard
+aiohttp
+asyncio 
+pandas
+numpy
