@@ -16,9 +16,62 @@
         .hero-bg {
             background: linear-gradient(135deg, #2563eb 0%, #10b981 100%);
         }
+        
+        /* Custom scrollbar for deals table */
+        .max-h-96::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .max-h-96::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .max-h-96::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .max-h-96::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* Recommendation cards animation */
+        .recommendation-card {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+        .recommendation-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Pulse animation for loading */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen">
+    <!-- Wallet Bar (top right) -->
+    <div id="wallet-bar" class="fixed top-4 right-6 z-50 flex items-center space-x-3 bg-white bg-opacity-90 shadow-lg rounded-full px-4 py-2 border border-gray-200 hidden">
+        <span id="wallet-bar-address" class="font-mono text-blue-700 text-sm"></span>
+        <button id="wallet-bar-copy" title="Copy address" class="ml-1 px-2 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full text-xs font-semibold flex items-center" style="line-height:1;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="#2563eb" stroke-width="2" d="M8 7V5.4A2.4 2.4 0 0 1 10.4 3h8.2A2.4 2.4 0 0 1 21 5.4v8.2a2.4 2.4 0 0 1-2.4 2.4H17"/><rect width="13" height="13" x="3" y="8" stroke="#2563eb" stroke-width="2" rx="2.4"/></svg>
+        </button>
+        <span id="wallet-bar-copy-feedback" class="ml-1 text-green-600 text-xs hidden">Copied!</span>
+        <button id="wallet-bar-disconnect" class="ml-2 px-3 py-1 bg-red-500 hover:bg-red-700 text-white rounded-full text-xs font-semibold">Disconnect</button>
+    </div>
     <!-- Home Page / Hero Section -->
     <section id="home-section" class="hero-bg py-16 min-h-screen flex flex-col justify-center items-center">
         <div class="max-w-3xl mx-auto text-center">
@@ -77,18 +130,221 @@
                 </div>
                 <p class="text-gray-600">Total Storage</p>
                 <p class="text-3xl font-bold mt-2" id="total-storage">0 GB</p>
+            </div>        </div>
+        
+        <!-- Quick Actions (Moved above deals) -->
+        <div class="glass bg-white p-8 rounded-lg shadow-lg mb-10">
+            <h2 class="text-2xl font-bold mb-6 text-blue-700">⚡ Quick Actions</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button id="new-backup-btn" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-6 rounded-xl font-semibold text-lg shadow-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
+                    <i class="fas fa-plus mr-3 text-xl"></i>New Backup
+                    <p class="text-sm text-blue-100 mt-2">Start a new backup job</p>
+                </button>
+                <button id="restore-btn" class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-6 rounded-xl font-semibold text-lg shadow-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
+                    <i class="fas fa-download mr-3 text-xl"></i>Restore Files
+                    <p class="text-sm text-green-100 mt-2">Restore from backup</p>
+                </button>
             </div>
         </div>
-        <!-- Quick Actions -->
+        
+        <!-- Filecoin Deals Section -->
         <div class="glass bg-white p-8 rounded-lg shadow-lg mb-10">
-            <h2 class="text-2xl font-bold mb-6 text-blue-700">Quick Actions</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <button id="new-backup-btn" class="bg-blue-600 hover:bg-blue-800 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow">
-                    <i class="fas fa-plus mr-2"></i>New Backup
-                </button>
-                <button id="restore-btn" class="bg-green-600 hover:bg-green-800 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow">
-                    <i class="fas fa-download mr-2"></i>Restore Files
-                </button>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-blue-700">📊 Filecoin Deals</h2>
+                <div class="flex items-center space-x-3">
+                    <div>
+                        <button id="mainnet-btn" class="network-btn bg-blue-600 text-white px-4 py-2 rounded-l-lg font-semibold focus:outline-none">Mainnet</button>
+                        <button id="testnet-btn" class="network-btn bg-gray-200 text-blue-700 px-4 py-2 rounded-r-lg font-semibold focus:outline-none">Testnet</button>
+                    </div>
+                    <button id="refresh-data-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold focus:outline-none shadow transition-colors" title="Refresh data from gateway">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh
+                    </button>
+                    <div id="update-status" class="text-sm text-gray-500 hidden"></div>
+                </div>
+            </div>
+            <div id="deals-loading" class="text-center text-gray-500 py-4 hidden">
+                <i class="fas fa-spinner fa-spin mr-2"></i>Loading deals...
+            </div>
+            <div class="relative">
+                <!-- Scrollable table container -->
+                <div class="overflow-x-auto max-h-96 overflow-y-auto border border-gray-200 rounded-lg shadow-inner">
+                    <table class="min-w-full divide-y divide-gray-200" id="deals-table">
+                        <thead class="bg-gray-50 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deal ID</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Piece Size</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Verified</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deals-tbody" class="bg-white divide-y divide-gray-100">
+                            <!-- Deals will be rendered here -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Scroll indicator -->
+                <div class="text-center text-sm text-gray-500 mt-2">
+                    <i class="fas fa-arrow-down mr-1"></i>
+                    Scroll to see more deals
+                </div>
+            </div>
+        </div>
+
+        <!-- Storage Advisor Section (Moved below deals) -->
+        <div class="glass bg-gradient-to-br from-purple-50 to-blue-50 p-8 rounded-xl shadow-xl mb-10 border border-purple-100">
+            <div class="flex justify-between items-center mb-8">
+                <div class="flex items-center">
+                    <div class="bg-gradient-to-r from-purple-500 to-blue-500 p-3 rounded-full mr-4">
+                        <i class="fas fa-brain text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">AI Storage Advisor</h2>
+                        <p class="text-gray-600 text-sm">Get intelligent insights and recommendations for your storage strategy</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <label for="time-period-select" class="text-sm font-medium text-gray-600">Analysis Period:</label>
+                        <select id="time-period-select" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm">
+                            <option value="7">Last 7 days</option>
+                            <option value="30" selected>Last 30 days</option>
+                            <option value="90">Last 3 months</option>
+                            <option value="180">Last 6 months</option>
+                        </select>
+                    </div>
+                    <button id="advisor-refresh-btn" class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-lg font-semibold focus:outline-none shadow-lg transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-magic mr-2"></i>Analyze
+                    </button>
+                </div>
+            </div>
+            
+            <div id="advisor-loading" class="text-center py-12 hidden">
+                <div class="inline-flex items-center px-6 py-3 bg-white rounded-full shadow-lg">
+                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mr-3"></div>
+                    <span class="text-gray-700 font-medium">Analyzing market conditions...</span>
+                </div>
+            </div>
+            
+            <div id="advisor-content" class="hidden">
+                <!-- Analysis Period Indicator -->
+                <div class="text-center mb-6">
+                    <div class="inline-flex items-center px-4 py-2 bg-white bg-opacity-80 rounded-full shadow-sm">
+                        <i class="fas fa-calendar-alt mr-2 text-purple-500"></i>
+                        <span class="text-gray-700">Analysis based on <span id="analysis-period" class="font-semibold text-purple-600">30 days</span> of market data</span>
+                    </div>
+                </div>
+                
+                <!-- Market Overview Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white bg-opacity-90 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-blue-200 hover:shadow-xl transition-all duration-300">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-blue-100 p-3 rounded-full mr-4">
+                                <i class="fas fa-chart-line text-blue-600 text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-blue-700">Market Activity</h3>
+                        </div>
+                        <div id="market-activity" class="space-y-2 text-sm text-gray-700">
+                            <div class="flex justify-between">
+                                <span>Daily deals:</span>
+                                <span id="daily-deals" class="font-semibold text-blue-600">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Verified:</span>
+                                <span id="verified-ratio" class="font-semibold text-green-600">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Activity level:</span>
+                                <span id="activity-level" class="font-semibold">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white bg-opacity-90 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-green-200 hover:shadow-xl transition-all duration-300">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-green-100 p-3 rounded-full mr-4">
+                                <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-green-700">Pricing Trends</h3>
+                        </div>
+                        <div id="pricing-info" class="space-y-2 text-sm text-gray-700">
+                            <div class="flex justify-between">
+                                <span>Current cost:</span>
+                                <span id="current-cost" class="font-semibold text-green-600">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Trend:</span>
+                                <span id="price-trend" class="font-semibold">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Change:</span>
+                                <span id="price-change" class="font-semibold">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white bg-opacity-90 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-yellow-200 hover:shadow-xl transition-all duration-300">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-yellow-100 p-3 rounded-full mr-4">
+                                <i class="fas fa-tachometer-alt text-yellow-600 text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-yellow-700">Data Efficiency</h3>
+                        </div>
+                        <div id="efficiency-info" class="space-y-2 text-sm text-gray-700">
+                            <div class="flex justify-between">
+                                <span>Unique ratio:</span>
+                                <span id="unique-ratio" class="font-semibold text-yellow-600">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Efficiency:</span>
+                                <span id="efficiency-level" class="font-semibold">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recommendations Section -->
+                <div class="mb-8">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-gradient-to-r from-orange-400 to-pink-400 p-2 rounded-full mr-3">
+                            <i class="fas fa-lightbulb text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Smart Recommendations</h3>
+                    </div>
+                    <div id="recommendations" class="space-y-4">
+                        <!-- Recommendations will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Decision Framework -->
+                <div class="bg-white bg-opacity-60 backdrop-blur-sm p-6 rounded-xl border border-gray-200">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-gradient-to-r from-indigo-400 to-purple-400 p-2 rounded-full mr-3">
+                            <i class="fas fa-cogs text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Decision Framework</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="decision-factors">
+                        <!-- Decision factors will be populated here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div id="advisor-error" class="hidden bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg">
+                <div class="flex items-center">
+                    <div class="bg-red-100 p-2 rounded-full mr-3">
+                        <i class="fas fa-exclamation-triangle text-red-600"></i>
+                    </div>
+                    <div>
+                        <strong class="text-red-800">Analysis Failed</strong>
+                        <p class="text-red-700 text-sm"><span id="advisor-error-message">Unable to fetch storage advice.</span></p>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- Recent Backups -->
@@ -101,29 +357,7 @@
     </section>
 
     <!-- Scripts -->
-    <script src="/static/metamask.js" type="text/javascript"></script>
-    <script src="/static/ui.js" type="text/javascript"></script>
-    <script>
-      // Show dashboard only if wallet is connected
-      document.addEventListener('DOMContentLoaded', function() {
-        function showSections(address) {
-          const home = document.getElementById('home-section');
-          const dash = document.getElementById('dashboard-section');
-          if (address) {
-            home.classList.add('hidden');
-            dash.classList.remove('hidden');
-          } else {
-            home.classList.remove('hidden');
-            dash.classList.add('hidden');
-          }
-        }
-        // On load
-        showSections(localStorage.getItem('walletAddress'));
-        // Listen for wallet connect/disconnect
-        window.addEventListener('walletConnected', function(e) {
-          showSections(e.detail.address);
-        });
-      });
-    </script>
+    <script src="/metamask.js" type="text/javascript"></script>
+    <script src="/ui.js" type="text/javascript"></script>
 </body>
 </html>

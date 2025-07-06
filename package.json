@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@glif/filecoin-address": "^4.0.0"
+    "@glif/filecoin-address": "^4.0.0",
+    "http-proxy-middleware": "^3.0.5"
   }
 }

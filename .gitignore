@@ -117,3 +117,4 @@ training-data/
 
 # Local configuration overrides
 docker-compose.override.yml
+myenv/

@@ -186,3 +186,127 @@
         border-color: #374151;
     }
 }
+
+/* Filecoin Deals Table Styles */
+.network-btn {
+    transition: background 0.2s, color 0.2s;
+}
+
+.deal-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+.deal-badge.filplus {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.deal-badge.regular {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.status-active {
+    color: #10b981;
+    font-weight: bold;
+}
+.status-pending {
+    color: #f59e0b;
+    font-weight: bold;
+}
+.status-expired {
+    color: #9ca3af;
+    font-weight: 600;
+}
+
+#deals-table th, #deals-table td {
+    white-space: nowrap;
+}
+
+#deals-table tr:hover {
+    background: #f3f4f6;
+}
+
+.accept-btn {
+    transition: background 0.2s;
+}
+
+/* Responsive for deals table */
+@media (max-width: 900px) {
+    #deals-table th, #deals-table td {
+        font-size: 0.85rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}
+
+/* Wallet Bar Styles */
+#wallet-bar {
+    box-shadow: 0 2px 12px rgba(31, 38, 135, 0.08);
+    border: 1px solid #e5e7eb;
+    min-width: 220px;
+    max-width: 350px;
+    font-size: 1rem;
+    align-items: center;
+}
+#wallet-bar-address {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+    display: inline-block;
+    vertical-align: middle;
+}
+#wallet-bar-disconnect {
+    margin-left: 8px;
+    font-size: 0.85rem;
+    padding: 4px 14px;
+    border-radius: 9999px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+#wallet-bar-copy-feedback {
+    transition: opacity 0.2s;
+    opacity: 1;
+}
+#wallet-bar-copy-feedback.hidden {
+    opacity: 0;
+}
+#wallet-bar-copy {
+    margin-left: 4px;
+    padding: 2px 6px;
+    display: flex;
+    align-items: center;
+    background: #f3f4f6;
+    border: none;
+    cursor: pointer;
+}
+#wallet-bar-copy:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Scrollable deals table */
+.scrollable-deals-table {
+    max-height: 420px;
+    overflow-y: auto;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(31, 38, 135, 0.05);
+}
+
+/* Advisor section styles */
+#advisor-section {
+    margin-top: 2rem;
+}
+#advisor-recommendations .advisor-card {
+    transition: box-shadow 0.2s;
+}
+#advisor-recommendations .advisor-card:hover {
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12);
+    border-left-width: 6px;
+}

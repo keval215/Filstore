@@ -9,9 +9,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"engine/backup"
 	"engine/processor"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -29,6 +30,10 @@ func main() {
 		api.GET("/backup/:id", backupManager.HandleGetStatus)
 		api.POST("/compress", processor.HandleCompress)
 		api.POST("/encrypt", processor.HandleEncrypt)
+
+		// Storage advisor endpoints
+		api.GET("/storage-advice", getStorageAdviceHandler)
+		api.GET("/storage-framework", getStorageFrameworkHandler)
 	}
 
 	// Create HTTP server
@@ -74,4 +79,60 @@ func healthHandler(c *gin.Context) {
 		"version":   "1.0.0",
 		"timestamp": time.Now(),
 	})
+}
+
+func getStorageAdviceHandler(c *gin.Context) {
+	// This would integrate with the Python storage advisor
+	// For now, return a placeholder response
+	c.JSON(http.StatusOK, gin.H{
+		"message":   "Storage advisor integration pending",
+		"service":   "engine",
+		"timestamp": time.Now(),
+		"advice": gin.H{
+			"recommendation": "Consider current market conditions before making storage deals",
+			"priority":       "Medium",
+		},
+	})
+}
+
+func getStorageFrameworkHandler(c *gin.Context) {
+	framework := gin.H{
+		"decision_factors": gin.H{
+			"cost": gin.H{
+				"description": "Storage price per GB",
+				"importance":  "High",
+				"considerations": []string{
+					"Current market rates",
+					"Price trends (increasing/decreasing)",
+					"Long-term vs short-term deals",
+				},
+			},
+			"reliability": gin.H{
+				"description": "Provider reputation and uptime",
+				"importance":  "High",
+				"considerations": []string{
+					"Provider track record",
+					"Geographic distribution",
+					"Redundancy (multiple providers)",
+				},
+			},
+			"deal_type": gin.H{
+				"description": "Verified vs regular deals",
+				"importance":  "Medium",
+				"considerations": []string{
+					"FIL+ verified deals offer better incentives",
+					"Regular deals may be cheaper",
+					"Provider preference for verified deals",
+				},
+			},
+		},
+		"decision_checklist": []string{
+			"What's your budget per GB?",
+			"How long do you need to store the data?",
+			"Is data redundancy important?",
+			"Do you qualify for FIL+ verified deals?",
+		},
+	}
+
+	c.JSON(http.StatusOK, framework)
 }
