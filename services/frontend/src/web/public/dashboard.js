@@ -228,9 +228,13 @@ class BackupDashboard {
             this.showNotification('Settings panel coming soon!', 'info');
         });
 
-        // Restore button
+        // Restore button - integrate with FileRetrievalManager
         document.getElementById('restore-btn').addEventListener('click', () => {
-            this.showNotification('Restore functionality coming soon!', 'info');
+            if (window.FileRetrievalManager) {
+                window.FileRetrievalManager.showRetrievalModal();
+            } else {
+                this.showNotification('Retrieval system not available', 'error');
+            }
         });
     }
 
