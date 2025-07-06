@@ -11,7 +11,7 @@ services:
       - BLOCKCHAIN_URL=http://blockchain:3001
       - DATA_PREP_URL=http://data-prep:3002
       - REDIS_URL=redis://redis:6379
-      - POSTGRES_URL=postgres://filecoin_user:filecoin_pass@postgres:5432/filecoin_backup
+      - POSTGRES_URL=postgres://filecoin_user:filecoin_pass@postgres:5432/filecoin_backup?sslmode=disable
     depends_on:
       - redis
       - postgres
@@ -29,7 +29,7 @@ services:
     environment:
       - PORT=9090
       - REDIS_URL=redis://redis:6379
-      - POSTGRES_URL=postgres://filecoin_user:filecoin_pass@postgres:5432/filecoin_backup
+      - POSTGRES_URL=postgres://filecoin_user:filecoin_pass@postgres:5432/filecoin_backup?sslmode=disable
     depends_on:
       - redis
       - postgres
@@ -72,7 +72,7 @@ services:
     environment:
       - PORT=3002
       - NODE_ENV=development
-      - POSTGRES_URL=postgres://filecoin_user:filecoin_pass@postgres:5432/filecoin_backup
+      - POSTGRES_URL=postgres://filecoin_user:filecoin_pass@postgres:5432/filecoin_backup?sslmode=disable
       - REDIS_URL=redis://redis:6379
       - UPLOAD_DIR=/app/uploads
       - CAR_OUTPUT_DIR=/app/cars

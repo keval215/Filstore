@@ -35,10 +35,23 @@ func main() {
 	// API routes - all protected by wallet authentication
 	api := r.Group("/api/v1")
 	{
+		// Health and status
 		api.GET("/health", handlers.Health)
 		api.GET("/status", handlers.Status)
+		
+		// Backup operations
 		api.POST("/backup", handlers.InitiateBackup)
 		api.GET("/backup/:id", handlers.GetBackupStatus)
+		
+		// File retrieval operations
+		api.POST("/retrieval", handlers.InitiateFileRetrieval)
+		api.GET("/retrieval/:id", handlers.GetRetrievalStatus)
+		api.POST("/retrieval/:id/cancel", handlers.CancelRetrieval)
+		api.GET("/retrieval/download/:cid", handlers.DownloadFile)
+		api.GET("/retrieval/metadata/:cid", handlers.GetFileMetadata)
+		api.GET("/retrieval/files", handlers.ListUserFiles)
+		
+		// Wallet operations
 		api.POST("/faucet", middleware.GetTestnetTokens())
 		api.GET("/balance/:address", middleware.GetWalletBalance())
 	}

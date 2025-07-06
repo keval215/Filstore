@@ -16,6 +16,24 @@ CREATE TABLE IF NOT EXISTS backup_jobs (
     backup_type VARCHAR(50) DEFAULT 'manual'
 );
 
+-- Retrieval Jobs table
+CREATE TABLE IF NOT EXISTS retrieval_jobs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    backup_job_id UUID REFERENCES backup_jobs(id) ON DELETE CASCADE,
+    cids TEXT[] NOT NULL DEFAULT '{}',
+    file_paths TEXT[] NOT NULL DEFAULT '{}',
+    format VARCHAR(50) NOT NULL DEFAULT 'original',
+    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    progress INTEGER DEFAULT 0,
+    message TEXT,
+    files JSONB,
+    total_size BIGINT DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    completed_at TIMESTAMP WITH TIME ZONE,
+    metadata JSONB,
+    wallet_address VARCHAR(255) NOT NULL
+);
+
 -- Wallets table
 CREATE TABLE IF NOT EXISTS wallets (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -102,6 +120,10 @@ CREATE TABLE IF NOT EXISTS system_config (
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_backup_jobs_status ON backup_jobs(status);
 CREATE INDEX IF NOT EXISTS idx_backup_jobs_created_at ON backup_jobs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_retrieval_jobs_status ON retrieval_jobs(status);
+CREATE INDEX IF NOT EXISTS idx_retrieval_jobs_wallet ON retrieval_jobs(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_retrieval_jobs_backup_job ON retrieval_jobs(backup_job_id);
+CREATE INDEX IF NOT EXISTS idx_retrieval_jobs_created_at ON retrieval_jobs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_wallets_address ON wallets(address);
 CREATE INDEX IF NOT EXISTS idx_wallets_network ON wallets(network);
 CREATE INDEX IF NOT EXISTS idx_storage_deals_status ON storage_deals(status);
@@ -128,7 +150,10 @@ INSERT INTO system_config (key, value) VALUES
     ('car_processing_enabled', 'true'),
     ('car_verification_enabled', 'true'),
     ('car_cleanup_threshold_days', '7'),
-    ('max_concurrent_car_jobs', '3')
+    ('max_concurrent_car_jobs', '3'),
+    ('retrieval_retention_days', '7'),
+    ('max_retrieval_jobs_per_user', '10'),
+    ('ipfs_gateway', 'https://ipfs.io')
 ON CONFLICT (key) DO NOTHING;
 
 -- Create a function to update the updated_at timestamp
@@ -175,6 +200,24 @@ LEFT JOIN storage_deals sd ON bj.id = sd.backup_job_id
 LEFT JOIN ipfs_pins ip ON bj.id = ip.backup_job_id
 LEFT JOIN wallets w ON sd.wallet_id = w.id
 GROUP BY bj.id, w.address, w.balance;
+
+-- Create a view for retrieval job summaries
+CREATE OR REPLACE VIEW retrieval_job_summary AS
+SELECT 
+    rj.id,
+    rj.status,
+    rj.progress,
+    rj.message,
+    rj.total_size,
+    rj.created_at,
+    rj.completed_at,
+    rj.wallet_address,
+    bj.id as backup_job_id,
+    bj.status as backup_status,
+    array_length(rj.cids, 1) as cid_count,
+    array_length(rj.file_paths, 1) as file_path_count
+FROM retrieval_jobs rj
+LEFT JOIN backup_jobs bj ON rj.backup_job_id = bj.id;
 
 -- Grant permissions to the filecoin_user
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO filecoin_user;
