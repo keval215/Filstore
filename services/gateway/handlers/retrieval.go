@@ -44,11 +44,11 @@ type FileInfo struct {
 
 // RetrievalStatus represents the status of a retrieval job
 type RetrievalStatus struct {
-	ID          string    `json:"id"`
-	Status      string    `json:"status"`
-	Progress    int       `json:"progress"`
-	Message     string    `json:"message"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID          string     `json:"id"`
+	Status      string     `json:"status"`
+	Progress    int        `json:"progress"`
+	Message     string     `json:"message"`
+	CreatedAt   time.Time  `json:"created_at"`
 	CompletedAt *time.Time `json:"completed_at,omitempty"`
 }
 
@@ -69,8 +69,22 @@ func InitiateFileRetrieval(c *gin.Context) {
 	// Forward request to engine service
 	engineURL := "http://engine:9090/api/v1/retrieval"
 	jsonData, _ := json.Marshal(req)
-	
-	resp, err := http.Post(engineURL, "application/json", bytes.NewBuffer(jsonData))
+
+	httpReq, err := http.NewRequest("POST", engineURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create request"})
+		return
+	}
+
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	// Pass wallet address as header
+	walletAddress := c.GetString("wallet_address")
+	if walletAddress != "" {
+		httpReq.Header.Set("X-Wallet-Address", walletAddress)
+	}
+
+	resp, err := http.DefaultClient.Do(httpReq)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to communicate with engine service"})
 		return
@@ -96,8 +110,20 @@ func GetRetrievalStatus(c *gin.Context) {
 
 	// Query engine service for retrieval status
 	engineURL := fmt.Sprintf("http://engine:9090/api/v1/retrieval/%s", retrievalID)
-	
-	resp, err := http.Get(engineURL)
+
+	req, err := http.NewRequest("GET", engineURL, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create request"})
+		return
+	}
+
+	// Pass wallet address as header
+	walletAddress := c.GetString("wallet_address")
+	if walletAddress != "" {
+		req.Header.Set("X-Wallet-Address", walletAddress)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to communicate with engine service"})
 		return
@@ -129,8 +155,20 @@ func DownloadFile(c *gin.Context) {
 
 	// Forward request to engine service
 	engineURL := fmt.Sprintf("http://engine:9090/api/v1/retrieval/download/%s?format=%s", cid, format)
-	
-	resp, err := http.Get(engineURL)
+
+	req, err := http.NewRequest("GET", engineURL, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create request"})
+		return
+	}
+
+	// Pass wallet address as header
+	walletAddress := c.GetString("wallet_address")
+	if walletAddress != "" {
+		req.Header.Set("X-Wallet-Address", walletAddress)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to communicate with engine service"})
 		return
@@ -176,13 +214,21 @@ func ListUserFiles(c *gin.Context) {
 	status := c.Query("status")
 
 	// Forward request to engine service
-	engineURL := fmt.Sprintf("http://engine:9090/api/v1/retrieval/files?wallet_address=%s&page=%d&limit=%d", 
-		walletAddress, page, limit)
+	engineURL := fmt.Sprintf("http://engine:9090/api/v1/retrieval/files?page=%d&limit=%d", page, limit)
 	if status != "" {
 		engineURL += fmt.Sprintf("&status=%s", status)
 	}
-	
-	resp, err := http.Get(engineURL)
+
+	req, err := http.NewRequest("GET", engineURL, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create request"})
+		return
+	}
+
+	// Pass wallet address as header
+	req.Header.Set("X-Wallet-Address", walletAddress)
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to communicate with engine service"})
 		return
@@ -208,8 +254,20 @@ func GetFileMetadata(c *gin.Context) {
 
 	// Forward request to engine service
 	engineURL := fmt.Sprintf("http://engine:9090/api/v1/retrieval/metadata/%s", cid)
-	
-	resp, err := http.Get(engineURL)
+
+	req, err := http.NewRequest("GET", engineURL, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create request"})
+		return
+	}
+
+	// Pass wallet address as header
+	walletAddress := c.GetString("wallet_address")
+	if walletAddress != "" {
+		req.Header.Set("X-Wallet-Address", walletAddress)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to communicate with engine service"})
 		return
@@ -235,7 +293,7 @@ func CancelRetrieval(c *gin.Context) {
 
 	// Forward request to engine service
 	engineURL := fmt.Sprintf("http://engine:9090/api/v1/retrieval/%s/cancel", retrievalID)
-	
+
 	req, err := http.NewRequest("POST", engineURL, nil)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create request"})

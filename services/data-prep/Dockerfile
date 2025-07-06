@@ -11,7 +11,7 @@ COPY package*.json ./
 
 # Install dependencies with security registry
 RUN npm config set registry https://registry.npmjs.org/ && \
-    npm ci --only=production && \
+    npm install --only=production && \
     npm cache clean --force
 
 # Copy application code

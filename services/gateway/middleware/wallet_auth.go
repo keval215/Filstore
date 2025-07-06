@@ -38,10 +38,13 @@ func WalletAuth() gin.HandlerFunc {
 		} else {
 			// For read operations, just check wallet address is provided
 			walletAddress := c.GetHeader("X-Wallet-Address")
-			if walletAddress != "" {
-				c.Set("wallet_address", walletAddress)
-				c.Set("authenticated", true)
+			if walletAddress == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
+				c.Abort()
+				return
 			}
+			c.Set("wallet_address", walletAddress)
+			c.Set("authenticated", true)
 		}
 
 		c.Next()
