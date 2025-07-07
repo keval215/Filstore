@@ -1047,25 +1047,10 @@ X-Wallet-Signature: 0x5678...ef90
 X-Signed-Message: "Authorize Filstore operation at 2025-07-03T06:45:00.000Z"
 ```
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/new-feature`
-3. Commit changes: `git commit -am 'Add new feature'`
-4. Push to branch: `git push origin feature/new-feature`
-5. Submit a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-- Check the logs: `docker-compose logs [service]`
-- Verify configurations in `data/config/`
-- Ensure all required environment variables are set
-- Test network connectivity to Filecoin and IPFS endpoints
-
+TEAM
+- Keval (Lead developer)
+- Tirth (backend developer
+- Madhvendra (Analyst)
 
 ---
 
