@@ -1049,7 +1049,7 @@ X-Signed-Message: "Authorize Filstore operation at 2025-07-03T06:45:00.000Z"
 
 TEAM
 - Keval (Lead developer)
-- Tirth (backend developer
+- Tirth (Backend developer)
 - Madhvendra (Analyst)
 
 ---
