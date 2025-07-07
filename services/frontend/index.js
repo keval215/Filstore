@@ -4,6 +4,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const fs = require('fs');
+const fetch = require('node-fetch');
+const multer = require('multer');
 const DataUpdater = require('./src/data-updater');
 
 const cliRoutes = require('./src/cli');
@@ -13,11 +15,110 @@ const apiClient = require('./src/api/client');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// CRITICAL: JavaScript file routes MUST be FIRST before any middleware
+// to prevent helmet CSP and other middleware from interfering
+app.get('/ethers.min.js', (req, res) => {
+  console.log(`🚨 ROUTE HIT: ethers.min.js requested at ${new Date().toISOString()}`);
+  const filePath = path.join(__dirname, 'src/web/public/ethers.min.js');
+  console.log(`🔧 Serving ethers.min.js from: ${filePath}`);
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.sendFile(filePath);
+  } else {
+    console.error('ethers.min.js not found');
+    res.status(404).send('ethers.min.js not found');
+  }
+});
+
+app.get('/deal-creator.js', (req, res) => {
+  const filePath = path.join(__dirname, 'src/web/public/deal-creator.js');
+  console.log(`🔧 Serving deal-creator.js from: ${filePath}`);
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.sendFile(filePath);
+  } else {
+    console.error('deal-creator.js not found');
+    res.status(404).send('deal-creator.js not found');
+  }
+});
+
+app.get('/metamask.js', (req, res) => {
+  const filePath = path.join(__dirname, 'src/web/public/metamask.js');
+  console.log(`🔧 Serving metamask.js from: ${filePath}`);
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.sendFile(filePath);
+  } else {
+    console.error('metamask.js not found');
+    res.status(404).send('metamask.js not found');
+  }
+});
+
+app.get('/ui.js', (req, res) => {
+  const filePath = path.join(__dirname, 'src/web/public/ui.js');
+  console.log(`🔧 Serving ui.js from: ${filePath}`);
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.sendFile(filePath);
+  } else {
+    console.error('ui.js not found');
+    res.status(404).send('ui.js not found');
+  }
+});
+
+app.get('/dashboard.js', (req, res) => {
+  const filePath = path.join(__dirname, 'src/web/public/dashboard.js');
+  console.log(`🔧 Serving dashboard.js from: ${filePath}`);
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.sendFile(filePath);
+  } else {
+    console.error('dashboard.js not found');
+    res.status(404).send('dashboard.js not found');
+  }
+});
+
 // Initialize the data updater
 const dataUpdater = new DataUpdater();
 
+// Configure multer for file uploads (for proxying to blockchain service)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = './temp-uploads'
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true })
+    }
+    cb(null, uploadDir)
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${file.originalname}`
+    cb(null, uniqueName)
+  }
+})
+
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 100 * 1024 * 1024 } // 100MB limit
+})
+
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts and self-hosted scripts
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"], // Allow external CSS CDNs
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'", "http://localhost:3001"], // Allow connections to blockchain service
+      fontSrc: ["'self'", "https:", "data:"],
+    },
+  },
+}));
 app.use(cors());
 app.use(morgan('combined'));
 app.use(express.json());
@@ -128,10 +229,17 @@ app.get('/api/storage-advisor', async (req, res) => {
     // Check if Python script exists
     if (!fs.existsSync(advisorPath)) {
       console.warn('⚠️ Python storage advisor not found, using fallback data');
+      console.log('💡 This error is likely due to missing Python environment setup.');
+      console.log('📋 To fix this issue, try installing dependencies:');
+      console.log('   1. Ensure Python environment is activated: myenv\\Scripts\\activate');
+      console.log('   2. Install required packages: pip install -r requirements.txt');
+      console.log('   3. Check if deal-analyzer directory exists with user_storage_advisor.py');
       return res.json({
         success: true,
         timestamp: new Date().toISOString(),
-        analysis: getMockStorageAdvice()
+        analysis: getMockStorageAdvice(),
+        fallback: true,
+        fallback_reason: 'Python advisor script not found - check environment setup'
       });
     }
     
@@ -154,11 +262,18 @@ app.get('/api/storage-advisor', async (req, res) => {
       if (code !== 0) {
         console.error('Storage Advisor error:', error);
         console.warn('⚠️ Python storage advisor failed, using fallback data');
+        console.log('💡 This error is likely due to missing Python dependencies.');
+        console.log('📋 To fix this issue, try:');
+        console.log('   1. Activate Python environment: myenv\\Scripts\\activate');
+        console.log('   2. Install dependencies: pip install pandas numpy requests');
+        console.log('   3. Check Python path and script permissions');
+        console.log('   Error details:', error);
         return res.json({
           success: true,
           timestamp: new Date().toISOString(),
           analysis: getMockStorageAdvice(),
-          fallback: true
+          fallback: true,
+          fallback_reason: 'Python advisor execution failed - check dependencies'
         });
       }
       
@@ -172,11 +287,17 @@ app.get('/api/storage-advisor', async (req, res) => {
       } catch (parseError) {
         console.error('Failed to parse advisor output:', parseError);
         console.warn('⚠️ Storage advisor parse failed, using fallback data');
+        console.log('💡 This error might be due to incomplete Python environment setup.');
+        console.log('📋 The Python script ran but returned invalid JSON. Try:');
+        console.log('   1. Check if all Python dependencies are installed');
+        console.log('   2. Test the script manually: python user_storage_advisor.py --json');
+        console.log('   3. Verify Python environment has: pandas, numpy, requests, json');
         res.json({
           success: true,
           timestamp: new Date().toISOString(),
           analysis: getMockStorageAdvice(),
-          fallback: true
+          fallback: true,
+          fallback_reason: 'Python advisor output parsing failed - check dependencies'
         });
       }
     });
@@ -185,21 +306,35 @@ app.get('/api/storage-advisor', async (req, res) => {
     const timeoutHandle = setTimeout(() => {
       python.kill();
       console.warn('⚠️ Storage advisor timeout, using fallback data');
+      console.log('💡 Python advisor process timed out after 10 seconds.');
+      console.log('📋 This could indicate missing dependencies or slow environment:');
+      console.log('   1. Check if Python environment is properly activated');
+      console.log('   2. Ensure all required packages are installed');
+      console.log('   3. Test script execution speed manually');
       res.json({
         success: true,
         timestamp: new Date().toISOString(),
         analysis: getMockStorageAdvice(),
-        fallback: true
+        fallback: true,
+        fallback_reason: 'Python advisor timeout - check environment performance'
       });
     }, 10000); // 10 second timeout
     
   } catch (error) {
     console.error('Storage Advisor API error:', error);
+    console.log('💡 General Storage Advisor error - likely environment issue.');
+    console.log('📋 To resolve this issue:');
+    console.log('   1. Check if Python is installed and accessible');
+    console.log('   2. Verify myenv virtual environment exists');
+    console.log('   3. Install dependencies: pip install pandas numpy requests');
+    console.log('   4. Ensure deal-analyzer directory and scripts exist');
+    console.log('   Error:', error.message);
     res.json({
       success: true,
       timestamp: new Date().toISOString(),
       analysis: getMockStorageAdvice(),
       fallback: true,
+      fallback_reason: 'Storage Advisor API error - check Python environment',
       error: error.message
     });
   }
@@ -397,15 +532,20 @@ app.get('/api/update/status', (req, res) => {
   }
 });
 
-// Serve static files
-app.use('/static', express.static(path.join(__dirname, 'src/web/public')));
+// Serve static files with proper MIME types
+const staticOptions = {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (path.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    }
+  }
+};
 
-// Also serve JS files directly from root for compatibility
-app.use('/metamask.js', express.static(path.join(__dirname, 'src/web/public/metamask.js')));
-app.use('/ui.js', express.static(path.join(__dirname, 'src/web/public/ui.js')));
-app.use('/dashboard.js', express.static(path.join(__dirname, 'src/web/public/dashboard.js')));
-app.use('/styles.css', express.static(path.join(__dirname, 'src/web/public/styles.css')));
+app.use('/static', express.static(path.join(__dirname, 'src/web/public'), staticOptions));
 
+// Health check
 // Health check
 app.get('/health', (req, res) => {
   res.json({
@@ -456,6 +596,89 @@ app.post('/save-deals', (req, res) => {
     }
     res.json({ status: 'ok' });
   });
+});
+
+// Proxy endpoints for blockchain service
+app.post('/check-wallet', async (req, res) => {
+  try {
+    const response = await fetch('http://blockchain:3001/check-wallet', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(req.body)
+    });
+    
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (error) {
+    console.error('Error proxying to blockchain service:', error);
+    res.status(500).json({ error: 'Failed to connect to blockchain service' });
+  }
+});
+
+app.post('/upload-and-deal', upload.single('file'), async (req, res) => {
+  try {
+    // Create a FormData object to forward the file
+    const FormData = require('form-data');
+    const formData = new FormData();
+    
+    // Add the file if it exists
+    if (req.file) {
+      formData.append('file', fs.createReadStream(req.file.path), {
+        filename: req.file.originalname,
+        contentType: req.file.mimetype
+      });
+    }
+    
+    // Add other form fields
+    Object.keys(req.body).forEach(key => {
+      formData.append(key, req.body[key]);
+    });
+    
+    const response = await fetch('http://blockchain:3001/upload-and-deal', {
+      method: 'POST',
+      body: formData,
+      headers: formData.getHeaders()
+    });
+    
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (error) {
+    console.error('Error proxying file upload to blockchain service:', error);
+    res.status(500).json({ error: 'Failed to connect to blockchain service' });
+  }
+});
+
+app.post('/confirm-deal', async (req, res) => {
+  try {
+    const response = await fetch('http://blockchain:3001/confirm-deal', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(req.body)
+    });
+    
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (error) {
+    console.error('Error proxying to blockchain service:', error);
+    res.status(500).json({ error: 'Failed to connect to blockchain service' });
+  }
+});
+
+app.get('/deal-status/:dealId', async (req, res) => {
+  try {
+    const { dealId } = req.params;
+    const response = await fetch(`http://blockchain:3001/deal-status/${dealId}`);
+    
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (error) {
+    console.error('Error proxying to blockchain service:', error);
+    res.status(500).json({ error: 'Failed to connect to blockchain service' });
+  }
 });
 
 // Error handling

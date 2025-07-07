@@ -384,6 +384,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             console.log('✅ Storage advisor data received:', data);
             
+            // Check if we're using fallback data due to Python environment issues
+            if (data.fallback && data.fallback_reason) {
+                console.warn('⚠️ Using fallback data:', data.fallback_reason);
+                // Show a helpful warning about Python environment
+                const warningHtml = `
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                            <span class="font-semibold text-yellow-800">Using Demo Data</span>
+                        </div>
+                        <div class="text-sm text-yellow-700 mb-2">
+                            Python advisor environment not available: ${data.fallback_reason}
+                        </div>
+                        <div class="text-xs text-yellow-600">
+                            <strong>To enable real-time analysis:</strong><br>
+                            1. Activate Python environment: <code>myenv\\Scripts\\activate</code><br>
+                            2. Install dependencies: <code>pip install pandas numpy requests</code><br>
+                            3. Verify deal-analyzer scripts are present
+                        </div>
+                    </div>
+                `;
+                // Insert warning before the advisor content
+                const advisorContent = document.getElementById('advisor-content');
+                if (advisorContent) {
+                    advisorContent.insertAdjacentHTML('afterbegin', warningHtml);
+                }
+            }
+            
             if (data.success && data.analysis) {
                 renderStorageAdvice(data.analysis);
                 advisorContent.classList.remove('hidden');
@@ -517,5 +545,108 @@ document.addEventListener('DOMContentLoaded', () => {
     // Auto-load advisor on page load
     setTimeout(fetchStorageAdvice, 2000);
 });
+
+// Deal Creator Integration
+let dealCreator = null;
+
+// Initialize deal creator when all scripts are loaded
+function initializeDealCreator() {
+    if (typeof DealCreator !== 'undefined') {
+        console.log('✅ Initializing DealCreator...');
+        dealCreator = new DealCreator();
+        dealCreator.init();
+        
+        // Add event handler for Upload Data button
+        const uploadDealBtn = document.getElementById('upload-deal-btn');
+        if (uploadDealBtn) {
+            uploadDealBtn.addEventListener('click', function() {
+                // Check if wallet is connected
+                const walletAddress = localStorage.getItem('walletAddress');
+                if (!walletAddress) {
+                    alert('Please connect your wallet first!');
+                    return;
+                }
+                
+                // Show the deal creation modal
+                dealCreator.showDealCreationModal();
+            });
+        }
+        
+        // Add event handlers for existing accept buttons in deals table
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('accept-btn')) {
+                e.preventDefault();
+                
+                // Check if wallet is connected
+                const walletAddress = localStorage.getItem('walletAddress');
+                if (!walletAddress) {
+                    alert('Please connect your wallet first!');
+                    return;
+                }
+                
+                // Get deal info from the row
+                const row = e.target.closest('tr');
+                const dealId = e.target.dataset.id;
+                const providerEl = row.querySelector('td:nth-child(2)');
+                const sizeEl = row.querySelector('td:nth-child(3)');
+                const verifiedEl = row.querySelector('td:nth-child(4)');
+                const priceEl = row.querySelector('td:nth-child(5)');
+                
+                const dealInfo = {
+                    id: dealId,
+                    provider: providerEl ? providerEl.textContent.trim() : 'Unknown',
+                    size: sizeEl ? sizeEl.textContent.trim() : 'Unknown',
+                    verified: verifiedEl ? verifiedEl.textContent.trim() === 'Yes' : false,
+                    price: priceEl ? priceEl.textContent.trim() : 'Free'
+                };
+                
+                // Show deal creation modal with prefilled info
+                dealCreator.showDealCreationModal(dealInfo);
+            }
+        });
+    } else {
+        console.log('⏳ DealCreator not ready yet, retrying...');
+        setTimeout(initializeDealCreator, 100);
+    }
+}
+
+// Initialize deal creator when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait a bit for all scripts to load, then initialize
+    setTimeout(initializeDealCreator, 200);
+});
+
+// Add global function to handle file upload completion
+window.onDealCreated = function(dealResult) {
+    console.log('Deal created:', dealResult);
+    
+    // Show success notification
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg z-50';
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-3"></i>
+            <div>
+                <div class="font-semibold">Deal Created Successfully!</div>
+                <div class="text-sm">Transaction: ${dealResult.txHash ? dealResult.txHash.substring(0, 10) + '...' : 'Pending'}</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove notification after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 5000);
+    
+    // Refresh deals table
+    const refreshBtn = document.getElementById('refresh-data-btn');
+    if (refreshBtn) {
+        setTimeout(() => refreshBtn.click(), 1000);
+    }
+};
 
 // Initial load
